@@ -1,8 +1,8 @@
-# Tripplus-admin
+# TripPlus-admin
 
 ## About this Repo
 
-Tripplus Side Project / Tripplus-admin : This is a project tracking application by using Next.js and Typescript.
+TripPlus Side Project / TripPlus-admin : This is a project tracking application by using Next.js and Typescript.
 
 ## Prerequisites
 
@@ -40,11 +40,11 @@ pnpm v 7.+
 
 - build
   ```bash
-  docker build -t tripplus-admin .
+  docker build -t TripPlus-admin .
   ```
 - run
   ```
-  docker run -d -p 80:3000 --name tripplus-admin tripplus-admin
+  docker run -d -p 80:3000 --name TripPlus-admin TripPlus-admin
   ```
 
 ## Core Skills

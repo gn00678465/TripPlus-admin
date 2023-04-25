@@ -1,0 +1,53 @@
+# Sample workflow for building and deploying a Next.js site to GitHub Pages
+#
+# To get started with Next.js see: https://nextjs.org/docs/getting-started
+#
+name: Deploy Tripplus-admin Website to Render
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  # unit test job
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Pnpm
+        uses: pnpm/action-setup@v2
+        id: pnpm-install
+        with:
+            version: 7
+            run_install: true
+      - name: Install Dependence
+        run: pnpm install --frozen-lockfile
+  
+  deploy:
+    name: Deploy
+    needs: [test] # Our tests must pass in order to run the deploy job
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to production
+        uses: bounceapp/render-action@0.6.0
+        with:
+          render-token: ${{ secrets.RENDER_TOKEN }}
+          service-id: ${{ secrets.SERVICE_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

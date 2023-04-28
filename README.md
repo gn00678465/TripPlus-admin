@@ -1,8 +1,8 @@
-# Tripplus-front
+# TripPlus-admin
 
 ## About this Repo
 
-Tripplus Side Project / Tripplus-admin : This is a project tracking application by using Next.js and Typescript.
+TripPlus Side Project / TripPlus-admin : This is a project tracking application by using Next.js and Typescript.
 
 ## Prerequisites
 
@@ -21,14 +21,14 @@ pnpm v 7.+
 - Clone this repository to your local machine.
 - Run `pnpm install` in the project directory to install all required dependencies.
 - Create a .env file at the root directory of the project and add the necessary environment variables.
-    - `.env.development.local` : for development
-    - `.env.production.local` : for production
-    - `.env.local` : always overrides the defaults set.
+  - `.env.development.local` : for development
+  - `.env.production.local` : for production
+  - `.env.local` : always overrides the defaults set.
 
 ### development
 
--  Run `pnpm dev` to start the application.
--  First, run the development server, open http://localhost:3000 with your browser to see the result.
+- Run `pnpm dev` to start the application.
+- First, run the development server, open http://localhost:3000 with your browser to see the result.
 
 ### production
 
@@ -39,13 +39,13 @@ pnpm v 7.+
 ### docker
 
 - build
-    ```bash
-    docker build -t tripplus-admin .
-    ```
+  ```bash
+  docker build -t TripPlus-admin .
+  ```
 - run
-    ```
-    docker run -d -p 80:3000 --name tripplus-admin tripplus-admin
-    ```
+  ```
+  docker run -d -p 80:3000 --name TripPlus-admin TripPlus-admin
+  ```
 
 ## Core Skills
 

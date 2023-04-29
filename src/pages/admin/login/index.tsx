@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Image from 'next/image';
 import {
   Card,
   CardHeader,
@@ -15,6 +16,7 @@ import {
 import { useForm } from 'react-hook-form';
 import { Icon } from '@chakra-ui/react';
 import { MdAccountCircle, MdVpnKey } from 'react-icons/md';
+import bg from '@/asserts/images/login_bg.jpg';
 
 type FormInputs = {
   email: string;
@@ -38,8 +40,23 @@ export default function AdminLogin() {
         <title>後台登入-TripPlus+</title>
       </Head>
       <div className="flex h-screen w-screen items-center justify-center">
+        <Image
+          src={bg}
+          alt="login_bg"
+          quality={100}
+          placeholder="blur"
+          fill
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center'
+          }}
+        ></Image>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Card className="w-[500px]" variant="filled">
+          <Card
+            className="backdrop-blur-sm backdrop-brightness-95 md:w-[500px]"
+            variant="filled"
+            bg="transparent"
+          >
             <CardHeader py="12">
               <h2 className="text-center font-alkatra text-4xl font-bold text-primary">
                 TripPlus+
@@ -60,7 +77,7 @@ export default function AdminLogin() {
                     <Input
                       bg="white"
                       size="lg"
-                      placeholder="account"
+                      placeholder="帳號"
                       type="email"
                       {...register('email', {
                         required: '請填入 E-mail!',
@@ -90,7 +107,7 @@ export default function AdminLogin() {
                     <Input
                       bg="white"
                       size="lg"
-                      placeholder="password"
+                      placeholder="密碼"
                       type="password"
                       {...register('password', {
                         required: '請填入密碼!',

@@ -7,14 +7,18 @@ import type {
 } from 'axios';
 import { getToken } from './helpers';
 import type { RequestInterceptor } from './types';
+import { handleAxiosError } from '@/utils';
 
 export default class CustomAxiosInstance {
   instance: AxiosInstance;
-  interceptorsObj: RequestInterceptor<AxiosResponse> | null;
+  interceptorsObj: RequestInterceptor<
+    AxiosResponse,
+    Service.FailedResult
+  > | null;
 
   constructor(
     axiosConfig: AxiosRequestConfig,
-    interceptorsObj?: RequestInterceptor<AxiosResponse>
+    interceptorsObj?: RequestInterceptor<AxiosResponse, Service.FailedResult>
   ) {
     this.instance = axios.create(axiosConfig);
     this.interceptorsObj = interceptorsObj || null;
@@ -32,7 +36,10 @@ export default class CustomAxiosInstance {
 
         return handleConfig;
       },
-      (axiosError: AxiosError) => axiosError
+      (axiosError: AxiosError<Service.FailedResult>) => {
+        const error = handleAxiosError(axiosError);
+        return Promise.reject(error);
+      }
     );
 
     this.instance.interceptors.request.use(
@@ -46,8 +53,13 @@ export default class CustomAxiosInstance {
     );
 
     this.instance.interceptors.response.use(
-      (res: AxiosResponse) => res,
-      (axiosError: AxiosError) => axiosError
+      (res: AxiosResponse) => {
+        return res.data;
+      },
+      (axiosError: AxiosError<Service.FailedResult>) => {
+        const error = handleAxiosError(axiosError);
+        return Promise.reject(error);
+      }
     );
   }
 }

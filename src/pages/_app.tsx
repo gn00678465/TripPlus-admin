@@ -1,6 +1,6 @@
 import '@/styles/globals.css';
 import type { AppProps } from 'next/app';
-import { Noto_Sans_TC } from 'next/font/google';
+import { Noto_Sans_TC, Ubuntu } from 'next/font/google';
 import localFont from 'next/font/local';
 import { Chakra } from '@/components';
 
@@ -8,6 +8,13 @@ const noto_sans_tc = Noto_Sans_TC({
   weight: ['100', '300', '400', '500', '700', '900'],
   preload: false,
   variable: '--font-noto_sans_tc'
+});
+
+const ubuntu = Ubuntu({
+  weight: ['300', '400', '500', '700'],
+  style: 'italic',
+  preload: false,
+  variable: '--font-ubuntu'
 });
 
 const alkatra = localFont({
@@ -39,7 +46,9 @@ type AppPropsWithLayout = AppProps & {
 export default function App({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
   return (
-    <main className={`${noto_sans_tc.variable} ${alkatra.variable} font-sans`}>
+    <main
+      className={`${noto_sans_tc.variable} ${alkatra.variable} ${ubuntu.variable} font-sans`}
+    >
       <Chakra>{getLayout(<Component {...pageProps} />)}</Chakra>
     </main>
   );

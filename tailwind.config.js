@@ -19,15 +19,15 @@ module.exports = {
           200: '#9AF7F7',
           300: '#64F2F2',
           400: '#2AE4E4',
-          500: '#00C7C7',
+          500: '#00BDBD',
           600: '#08A4A9',
           700: '#11868B',
           800: '#167075',
           900: '#155C61',
           950: '#074045',
-          DEFAULT: '#00C7C7'
+          DEFAULT: '#00BDBD'
         },
-        'primary-emphasis': {
+        'secondary-emphasis': {
           50: '#E7FBF6',
           100: '#C2F9ED',
           200: '#95F2E2',
@@ -41,12 +41,26 @@ module.exports = {
           950: '#053134',
           DEFAULT: '#008E86'
         },
+        gray: {
+          100: '#F9F9F9',
+          200: '#E9E9E9',
+          300: '#D3D3D3',
+          400: '#939393',
+          500: '#4F4F4F',
+          900: '#1A1A1A',
+          DEFAULT: '#4F4F4F'
+        },
         secondary: '#EAF8F8',
+        'secondary-light': '#EFF5F5',
         success: '#00C2FF',
         light: '#4F4F4F'
       },
       fontFamily: {
-        sans: ['var(--font-noto_sans_tc)', ...fontFamily.sans],
+        sans: [
+          'var(--font-ubuntu)',
+          'var(--font-noto_sans_tc)',
+          ...fontFamily.sans
+        ],
         alkatra: ['var(--font-alkatra)']
       }
     }

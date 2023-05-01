@@ -11,12 +11,16 @@ import {
   Stack,
   InputGroup,
   InputLeftElement,
-  Input
+  Input,
+  useToast
 } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { Icon } from '@chakra-ui/react';
 import { MdAccountCircle, MdVpnKey } from 'react-icons/md';
 import bg from '@/asserts/images/login_bg.jpg';
+import { login } from '@/service/api';
+import { safeAwait, localStg } from '@/utils';
+import { useRouter } from 'next/router';
 
 type FormInputs = {
   email: string;
@@ -24,14 +28,30 @@ type FormInputs = {
 };
 
 export default function AdminLogin() {
+  const router = useRouter();
+  const toast = useToast();
   const {
     handleSubmit,
     register,
     formState: { errors }
   } = useForm<FormInputs>();
 
-  const onSubmit = (data: FormInputs) => {
-    console.log(data);
+  const onSubmit = async (data: FormInputs) => {
+    const [err, res] = await safeAwait(login(data));
+    if (err) {
+      toast({
+        position: 'top',
+        title: '登入錯誤!',
+        description: err.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true
+      });
+    }
+    if (res) {
+      localStg.set('userInfo', res.data);
+      router.push('/admin/projects');
+    }
   };
 
   return (

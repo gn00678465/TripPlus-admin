@@ -1,5 +1,5 @@
 import { localStg } from '@/utils';
 
 export function getToken() {
-  return localStg.get('token') || '';
+  return localStg.get('userInfo')?.token || '';
 }

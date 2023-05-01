@@ -12,7 +12,7 @@ const noto_sans_tc = Noto_Sans_TC({
 
 const ubuntu = Ubuntu({
   weight: ['300', '400', '500', '700'],
-  style: 'italic',
+  style: ['italic', 'normal'],
   preload: false,
   variable: '--font-ubuntu'
 });

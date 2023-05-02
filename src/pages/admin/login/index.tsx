@@ -49,8 +49,19 @@ export default function AdminLogin() {
       });
     }
     if (res) {
-      localStg.set('userInfo', res.data);
-      router.push('/admin/projects');
+      if (!res.data.roles.includes('admin')) {
+        toast({
+          position: 'top',
+          title: '權限不足!',
+          status: 'error',
+          duration: 5000,
+          isClosable: true
+        });
+        router.push('/');
+      } else {
+        localStg.set('userInfo', res.data);
+        router.push('/admin/projects');
+      }
     }
   };
 

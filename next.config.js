@@ -11,11 +11,6 @@ const nextConfig = {
         source: '/',
         destination: process.env.REDIRECT_INDEX,
         permanent: true
-      },
-      {
-        source: '/admin',
-        destination: '/admin/login',
-        permanent: true
       }
     ];
   }

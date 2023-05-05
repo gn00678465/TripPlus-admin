@@ -17,7 +17,7 @@ import {
 import { useForm } from 'react-hook-form';
 import { Icon } from '@chakra-ui/react';
 import { MdAccountCircle, MdVpnKey } from 'react-icons/md';
-import bg from '@/asserts/images/login_bg.jpg';
+import bg from '@/assets/images/login-bg.jpg';
 import { login } from '@/service/api';
 import { safeAwait, localStg } from '@/utils';
 import { useRouter } from 'next/router';
@@ -73,7 +73,7 @@ export default function AdminLogin() {
       <div className="flex h-screen w-screen items-center justify-center">
         <Image
           src={bg}
-          alt="login_bg"
+          alt="login"
           quality={100}
           placeholder="blur"
           fill

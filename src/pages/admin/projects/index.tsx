@@ -22,7 +22,7 @@ import { FiEdit } from 'react-icons/fi';
 import { IoNewspaperOutline } from 'react-icons/io5';
 import { RiDashboard3Line } from 'react-icons/ri';
 import { currency } from '@/utils';
-import { useElementSize, usePagination } from '@/hooks';
+import { useElementSize, usePagination, useWindowSize } from '@/hooks';
 
 type Data = {
   category: string;
@@ -126,7 +126,7 @@ const AdminProjects = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
 
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const windowSize = useWindowSize();
   const [headerWidth, headerHeight] = useElementSize(headerRef);
   const [searchWidth, searchHeight] = useElementSize(searchRef);
   const [paginationWidth, paginationHeight] = useElementSize(paginationRef);
@@ -138,7 +138,12 @@ const AdminProjects = () => {
   });
 
   const tableHeight = useMemo(() => {
-    return windowSize.height - headerHeight - searchHeight - paginationHeight;
+    if (windowSize.width > 1080) {
+      return (
+        windowSize.height - headerHeight - searchHeight - paginationHeight - 90
+      );
+    }
+    return 'auto';
   }, [windowSize, headerHeight, searchHeight, paginationHeight]);
 
   const columnHelper = createColumnHelper<Data>();
@@ -242,25 +247,6 @@ const AdminProjects = () => {
     console.log(e.target.value);
   }
 
-  useEffect(() => {
-    if (typeof window !== undefined) {
-      const handler = () => {
-        setWindowSize(() => ({
-          width: window.innerWidth,
-          height: window.innerHeight
-        }));
-      };
-
-      window.addEventListener('size', handler);
-
-      handler();
-
-      return () => {
-        window.removeEventListener('size', handler);
-      };
-    }
-  }, []);
-
   return (
     <>
       <Head>
@@ -322,7 +308,7 @@ const AdminProjects = () => {
               <DataTable
                 columns={columns}
                 data={data}
-                height={tableHeight - 90}
+                height={tableHeight}
                 pagination={pagination}
               ></DataTable>
               <div

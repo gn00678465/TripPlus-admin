@@ -13,13 +13,14 @@ import {
   Tr,
   Th,
   Td,
-  TableContainer
+  TableContainer,
+  TableContainerProps
 } from '@chakra-ui/react';
 
 export type DataTableProps<T extends object> = {
   data: T[];
   columns: ColumnDef<T, any>[];
-  height: number;
+  height: TableContainerProps['maxHeight'];
   pagination?: {
     page: number;
     pageSize: number;

@@ -5,13 +5,7 @@ interface LayoutProps {
 }
 
 const Layout: FC<LayoutProps> = ({ children }) => {
-  return (
-    <>
-      <header>nav</header>
-      <main>{children}</main>
-      <footer>footer</footer>
-    </>
-  );
+  return <div className="relative h-screen">{children}</div>;
 };
 
 export default Layout;

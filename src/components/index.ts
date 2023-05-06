@@ -1,5 +1,5 @@
 import ErrorBoundary from './ErrorBoundary';
-import Layout from './Layout';
+import BlankLayout from './BlankLayout';
 
 export * from './Chakra';
-export { ErrorBoundary, Layout };
+export { ErrorBoundary, BlankLayout };

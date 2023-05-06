@@ -12,7 +12,6 @@ const noto_sans_tc = Noto_Sans_TC({
 
 const ubuntu = Ubuntu({
   weight: ['300', '400', '500', '700'],
-  style: ['italic', 'normal'],
   preload: false,
   variable: '--font-ubuntu'
 });
@@ -47,7 +46,7 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
   return (
     <main
-      className={`${noto_sans_tc.variable} ${alkatra.variable} ${ubuntu.variable} font-sans`}
+      className={`${ubuntu.variable} ${noto_sans_tc.variable} ${alkatra.variable} font-sans`}
     >
       <Chakra>{getLayout(<Component {...pageProps} />)}</Chakra>
     </main>

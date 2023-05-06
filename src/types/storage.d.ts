@@ -1,5 +1,5 @@
 declare namespace StorageInterface {
   interface Local {
-    token: string;
+    userInfo: ApiAuth.UserInfo;
   }
 }

@@ -1,10 +1,10 @@
 import type { InternalAxiosRequestConfig, AxiosError } from 'axios';
 
-export interface RequestInterceptor<T> {
+export interface RequestInterceptor<T, TR> {
   requestInterceptors?: (
     config: InternalAxiosRequestConfig
   ) => InternalAxiosRequestConfig;
-  requestInterceptorsCatch?: (err: AxiosError) => AxiosError;
+  requestInterceptorsCatch?: (err: AxiosError<TR>) => AxiosError<TR>;
   responseInterceptors?: (config: T) => T;
-  responseInterceptorsCatch?: (err: AxiosError) => AxiosError;
+  responseInterceptorsCatch?: (err: AxiosError<TR>) => AxiosError<TR>;
 }

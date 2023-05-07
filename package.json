@@ -12,7 +12,8 @@
     "lint": "next lint",
     "lint:lint-staged": "lint-staged",
     "format": "prettier --write \"./**/*.{html,tsx,jsx,ts,js,json,md}\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.0.19",

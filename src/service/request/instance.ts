@@ -32,7 +32,7 @@ export default class CustomAxiosInstance {
         let handleConfig = { ...config };
 
         // 處理 token
-        handleConfig.headers.Authorization = getToken();
+        handleConfig.headers.Authorization = `Bearer ${getToken()}`;
 
         return handleConfig;
       },

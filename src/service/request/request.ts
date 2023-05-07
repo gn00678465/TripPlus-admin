@@ -14,7 +14,7 @@ interface RequestParam {
 
 export function createRequest(
   config: AxiosRequestConfig,
-  interceptorsObj?: RequestInterceptor<AxiosResponse>
+  interceptorsObj?: RequestInterceptor<AxiosResponse, Service.FailedResult>
 ) {
   const customInstance = new CustomAxiosInstance(config, interceptorsObj);
 

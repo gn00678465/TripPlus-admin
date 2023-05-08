@@ -15,6 +15,7 @@ import {
   IconButton,
   Select
 } from '@chakra-ui/react';
+import { useMediaQuery } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
 import { DataTable, Pagination, DropdownOptions } from './components';
 import { MdAdd, MdArrowDropDown, MdOutlineSearch } from 'react-icons/md';
@@ -22,12 +23,7 @@ import { FiEdit } from 'react-icons/fi';
 import { IoNewspaperOutline } from 'react-icons/io5';
 import { RiDashboard3Line } from 'react-icons/ri';
 import { currency } from '@/utils';
-import {
-  useElementSize,
-  usePagination,
-  useWindowSize,
-  useMediaQuery
-} from '@/hooks';
+import { useElementSize, usePagination, useWindowSize } from '@/hooks';
 
 type Data = {
   category: string;
@@ -138,7 +134,10 @@ const AdminProjects = () => {
 
   const [total, setTotal] = useState(100);
 
-  const isMobile = useMediaQuery('(max-width: 375px)', true);
+  const [isMobile] = useMediaQuery('(max-width: 375px)', {
+    ssr: true,
+    fallback: false
+  });
 
   const [pagination, setPagination] = usePagination({
     total,

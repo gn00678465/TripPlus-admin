@@ -1,28 +1,51 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { isBrowser } from '@/utils';
 
-export function useWindowSize() {
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+export interface useWindowSizeOptions {
+  initialWidth?: number;
+  initialHeight?: number;
+  includeScrollbar?: boolean;
+}
+
+export function useWindowSize(options: useWindowSizeOptions) {
+  const {
+    initialWidth = Infinity,
+    initialHeight = Infinity,
+    includeScrollbar = true
+  } = options;
+
+  const [state, setState] = useState({
+    width: initialWidth,
+    height: initialHeight
+  });
 
   useEffect(() => {
-    if (typeof window !== undefined) {
-      const handler = () => {
-        setWindowSize(() => ({
-          width: window.innerWidth,
-          height: window.innerHeight
-        }));
+    if (isBrowser) {
+      const handle = () => {
+        if (includeScrollbar) {
+          setState(() => ({
+            width: window.innerWidth,
+            height: window.innerHeight
+          }));
+        } else {
+          setState(() => ({
+            width: window.document.documentElement.clientWidth,
+            height: window.document.documentElement.clientHeight
+          }));
+        }
       };
 
-      window.addEventListener('resize', handler);
+      window.addEventListener('resize', handle, { passive: true });
 
-      handler();
+      handle();
 
       return () => {
-        window.removeEventListener('resize', handler);
+        window.removeEventListener('resize', handle);
       };
     }
   }, []);
 
-  return windowSize;
+  return state;
 }
 
-export type useWindowSizeReturnType = ReturnType<typeof useWindowSize>;
+export type UseWindowSizeReturn = ReturnType<typeof useWindowSize>;

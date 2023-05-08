@@ -45,7 +45,8 @@ export default function DataTable<T extends object>({
         pageIndex: pagination?.page || 1,
         pageSize: pagination?.pageSize || 10
       }
-    }
+    },
+    manualPagination: true
   });
 
   return (

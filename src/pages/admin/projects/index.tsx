@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import type { ReactElement } from 'react';
 import { BlankLayout } from '@/components';
 import {
@@ -22,7 +22,12 @@ import { FiEdit } from 'react-icons/fi';
 import { IoNewspaperOutline } from 'react-icons/io5';
 import { RiDashboard3Line } from 'react-icons/ri';
 import { currency } from '@/utils';
-import { useElementSize, usePagination, useWindowSize } from '@/hooks';
+import {
+  useElementSize,
+  usePagination,
+  useWindowSize,
+  useMediaQuery
+} from '@/hooks';
 
 type Data = {
   category: string;
@@ -126,13 +131,17 @@ const AdminProjects = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
 
-  const windowSize = useWindowSize();
+  const windowSize = useWindowSize({});
   const [headerWidth, headerHeight] = useElementSize(headerRef);
   const [searchWidth, searchHeight] = useElementSize(searchRef);
   const [paginationWidth, paginationHeight] = useElementSize(paginationRef);
 
+  const [total, setTotal] = useState(100);
+
+  const isMobile = useMediaQuery('(max-width: 375px)', true);
+
   const [pagination, setPagination] = usePagination({
-    total: 100,
+    total,
     defaultPage: 1,
     defaultPageSize: 10
   });
@@ -313,21 +322,22 @@ const AdminProjects = () => {
               ></DataTable>
               <div
                 ref={paginationRef}
-                className="mt-4 flex items-center justify-between px-3"
+                className="mt-4 flex flex-col items-center justify-center gap-y-2 px-3 md:flex-row md:justify-between"
               >
-                <p>
-                  {from(pagination.page, pagination.pageSize)} of{' '}
-                  {pagination.pageSize}
+                <p className="self-start">
+                  {from(pagination.page, pagination.pageSize)} of {total}
                 </p>
                 <Pagination
                   page={pagination.page}
                   pageCount={pagination.pageCount}
-                  size="sm"
+                  siblingsCount={1}
+                  size={isMobile ? 'xs' : 'sm'}
                   variant="ghost"
-                  colorScheme="gray"
+                  colorScheme="primary"
+                  shape="circle"
                   onPageChange={setPagination.setPage}
-                  onPrevPage={setPagination.prev}
-                  onNextPage={setPagination.next}
+                  onPrevPage={() => setPagination.prev(1)}
+                  onNextPage={() => setPagination.next(1)}
                 ></Pagination>
               </div>
             </CardBody>

@@ -31,7 +31,7 @@ export type DataTableProps<T extends object> = {
   };
 };
 
-export default function DataTable<T extends object>({
+export function DataTable<T extends object>({
   data,
   columns,
   height,

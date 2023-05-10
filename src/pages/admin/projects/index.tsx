@@ -303,10 +303,7 @@ const AdminProjects = () => {
                 </option>
               ))}
             </Select>
-            <InputGroup
-              className="w-full xs:w-1/3 xs:shrink-0"
-              width={isMobile ? undefined : 'auto'}
-            >
+            <InputGroup className="w-full xs:w-1/3">
               <Input placeholder="搜尋專案相關資料" bg="white" />
               <InputRightElement>
                 <Icon as={MdOutlineSearch} />

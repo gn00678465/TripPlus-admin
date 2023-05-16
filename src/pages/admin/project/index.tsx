@@ -67,7 +67,7 @@ export default function AdminProject() {
             const res = await apiPostProject(params);
 
             if (res.status === 'Success') {
-              router.push(`/admin/project/${res.data._id}/info`);
+              router.push(`/admin/project/${res.data._id}/dashboard`);
             }
           });
         }

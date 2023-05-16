@@ -18,7 +18,7 @@ import { useForm } from 'react-hook-form';
 import { Icon } from '@chakra-ui/react';
 import { MdAccountCircle, MdVpnKey } from 'react-icons/md';
 import bg from '@/assets/images/login-bg.jpg';
-import { login } from '@/service/api';
+import { login } from '@/api';
 import { safeAwait } from '@/utils';
 import { useRouter } from 'next/router';
 import { useAuthStore } from '@/store';

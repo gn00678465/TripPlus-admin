@@ -18,31 +18,65 @@ import {
 import { useForm } from 'react-hook-form';
 import { ImageFallback } from '@/components';
 import NoImage from '../../../assets/images/no-image.png';
-import { useFileReader } from '@/hooks';
+import { useFileReader, useUploadImage } from '@/hooks';
 import { MdCameraEnhance } from 'react-icons/md';
-
-interface FormInputs {
-  title: string;
-  teamName: string;
-  category: 0 | 1 | 2;
-  startTime: string;
-  endTime: string;
-  target: number;
-}
+import dayjs from 'dayjs';
+import { useSWRConfig } from 'swr';
+import { apiPostProject } from '@/api';
+import { useRouter } from 'next/router';
 
 export default function AdminProject() {
   const [file, setFile] = useState<undefined | File>();
   const { dataURL } = useFileReader(file);
+  const { mutate } = useSWRConfig();
+  const router = useRouter();
+
+  const { trigger } = useUploadImage();
+
+  function handleStartTime(date: string) {
+    return dayjs(date).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+  }
+
+  function handleEndTime(date: string) {
+    return dayjs(date).endOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+  }
 
   const {
     handleSubmit,
     register,
     setValue,
     formState: { errors }
-  } = useForm<FormInputs>();
+  } = useForm<Project.FormInputs>();
 
-  async function onSubmit(formData: FormInputs) {
-    console.log(formData);
+  async function onSubmit(formInput: Project.FormInputs) {
+    if (!file) return;
+    const formData = new FormData();
+
+    formData.append('file', file);
+    await trigger(formData, {
+      onSuccess: (data, key, config) => {
+        if (data.status === 'Success') {
+          const params = {
+            ...formInput,
+            startTime: handleStartTime(formInput.startTime),
+            endTime: handleEndTime(formInput.endTime),
+            keyVision: data.data.imageUrl
+          };
+
+          mutate('/post/admin/project', async () => {
+            const res = await apiPostProject(params);
+
+            if (res.status === 'Success') {
+              router.push(`/admin/project/${res.data._id}/info`);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  function onCancel() {
+    router.push('/admin/projects');
   }
 
   return (
@@ -206,7 +240,9 @@ export default function AdminProject() {
               </FormControl>
             </div>
             <Center gap={4} py={4} mt={4}>
-              <Button px={12}>取消</Button>
+              <Button px={12} onClick={onCancel}>
+                取消
+              </Button>
               <Button px={12} type="submit" colorScheme="primary">
                 儲存
               </Button>

@@ -276,9 +276,12 @@ const AdminProjects = () => {
             新增專案
           </Button>
         </div>
-        <div ref={searchRef} className="flex bg-gray-200 p-4 sm:px-12 md:py-2">
+        <div
+          ref={searchRef}
+          className="md: flex bg-gray-200 px-4  py-3 sm:px-12"
+        >
           <div className="hidden sm:block sm:shrink-0 md:w-0 xl:w-3/5"></div>
-          <div className="flex w-full flex-col items-center justify-end gap-y-2 sm:flex-row sm:gap-2 sm:gap-y-0">
+          <div className="flex w-full flex-col items-center justify-end gap-y-3 sm:flex-row sm:gap-2 sm:gap-y-0">
             <Select
               className="w-full xs:w-1/3 xs:shrink-0"
               icon={<MdArrowDropDown />}

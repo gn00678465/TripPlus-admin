@@ -62,6 +62,7 @@ export function DataTable<T extends object>({
                 const meta: any = header.column.columnDef.meta;
                 return (
                   <Th
+                    fontSize="1rem"
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
                     isNumeric={meta?.isNumeric}

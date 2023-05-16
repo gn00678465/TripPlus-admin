@@ -51,7 +51,7 @@ export default function AdminProject() {
         <title>新增專案-TripPlus+</title>
       </Head>
       <div className="h-full min-h-screen bg-gray-100">
-        <Container px="20" maxW="800px">
+        <Container maxW="760px" px={{ base: '4', sm: '6', md: '12' }}>
           <h2 className="py-4 text-2xl font-bold text-gray-500">新增專案</h2>
           <Box as="form" onSubmit={handleSubmit(onSubmit)}>
             <div className="flex w-full flex-col gap-y-6 bg-white px-4 py-12 md:p-12">
@@ -98,7 +98,9 @@ export default function AdminProject() {
                 display="flex"
                 alignItems="center"
               >
-                <FormLabel flexBasis="150px">專案名稱</FormLabel>
+                <FormLabel flexShrink={0} flexBasis="125px">
+                  專案名稱
+                </FormLabel>
                 <Input
                   placeholder="填入專案名稱"
                   {...register('title', {
@@ -112,7 +114,9 @@ export default function AdminProject() {
                 )}
               </FormControl>
               <FormControl isRequired display="flex" alignItems="center">
-                <FormLabel flexBasis="150px">提案團隊</FormLabel>
+                <FormLabel flexShrink={0} flexBasis="125px">
+                  提案團隊
+                </FormLabel>
                 <Input
                   placeholder="填入提案團隊"
                   {...register('teamName', {
@@ -126,7 +130,9 @@ export default function AdminProject() {
                 )}
               </FormControl>
               <FormControl isRequired display="flex" alignItems="center">
-                <FormLabel flexBasis="150px">專案類型</FormLabel>
+                <FormLabel flexShrink={0} flexBasis="125px">
+                  專案類型
+                </FormLabel>
                 <Select
                   placeholder="選擇專案類型"
                   {...register('category', {
@@ -144,7 +150,9 @@ export default function AdminProject() {
                 )}
               </FormControl>
               <FormControl isRequired display="flex" alignItems="center">
-                <FormLabel flexBasis="150px">專案開始時間</FormLabel>
+                <FormLabel flexShrink={0} flexBasis="125px">
+                  專案開始時間
+                </FormLabel>
                 <Input
                   placeholder="選擇專案開始時間"
                   type="date"
@@ -159,7 +167,9 @@ export default function AdminProject() {
                 )}
               </FormControl>
               <FormControl isRequired display="flex" alignItems="center">
-                <FormLabel flexBasis="150px">專案結束時間</FormLabel>
+                <FormLabel flexShrink={0} flexBasis="125px">
+                  專案結束時間
+                </FormLabel>
                 <Input
                   placeholder="專案結束時間"
                   type="date"
@@ -174,7 +184,9 @@ export default function AdminProject() {
                 )}
               </FormControl>
               <FormControl isRequired display="flex" alignItems="center">
-                <FormLabel flexBasis="150px">目標金額</FormLabel>
+                <FormLabel flexShrink={0} flexBasis="125px">
+                  目標金額
+                </FormLabel>
                 <NumberInput className="w-full">
                   <NumberInputField
                     placeholder="請輸入目標金額"
@@ -193,7 +205,7 @@ export default function AdminProject() {
                 )}
               </FormControl>
             </div>
-            <Center gap={4} py={4}>
+            <Center gap={4} py={4} mt={4}>
               <Button px={12}>取消</Button>
               <Button px={12} type="submit" colorScheme="primary">
                 儲存

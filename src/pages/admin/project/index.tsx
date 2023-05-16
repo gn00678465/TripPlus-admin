@@ -6,14 +6,14 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
-  FormHelperText,
   Select,
   NumberInput,
   NumberInputField,
   Input,
   Button,
   Center,
-  Icon
+  Icon,
+  useToast
 } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { ImageFallback } from '@/components';
@@ -30,6 +30,7 @@ export default function AdminProject() {
   const { dataURL } = useFileReader(file);
   const { mutate } = useSWRConfig();
   const router = useRouter();
+  const toast = useToast();
 
   const { trigger } = useUploadImage();
 
@@ -55,6 +56,15 @@ export default function AdminProject() {
     formData.append('file', file);
     await trigger(formData, {
       onSuccess: (data, key, config) => {
+        if (data.status === 'Error') {
+          toast({
+            position: 'top',
+            title: data.message,
+            status: 'error',
+            duration: 5000,
+            isClosable: true
+          });
+        }
         if (data.status === 'Success') {
           const params = {
             ...formInput,
@@ -68,6 +78,15 @@ export default function AdminProject() {
 
             if (res.status === 'Success') {
               router.push(`/admin/project/${res.data._id}/dashboard`);
+            }
+            if (res.status === 'Error') {
+              toast({
+                position: 'top',
+                title: res.message,
+                status: 'error',
+                duration: 5000,
+                isClosable: true
+              });
             }
           });
         }

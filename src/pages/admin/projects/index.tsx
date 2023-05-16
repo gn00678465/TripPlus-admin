@@ -228,7 +228,7 @@ const AdminProjects = () => {
     switch (value) {
       case '募資':
         return (
-          <Tag colorScheme="primary" bgColor="primary.400">
+          <Tag colorScheme="primary" bgColor="primary.500" color="white">
             {value}
           </Tag>
         );
@@ -276,9 +276,9 @@ const AdminProjects = () => {
             新增專案
           </Button>
         </div>
-        <div ref={searchRef} className="flex bg-gray-200 p-4 py-2  sm:px-12">
+        <div ref={searchRef} className="flex bg-gray-200 p-4 sm:px-12 md:py-2">
           <div className="hidden sm:block sm:shrink-0 md:w-0 xl:w-3/5"></div>
-          <div className="flex w-full flex-col items-center justify-end gap-y-1 sm:flex-row sm:gap-2 sm:gap-y-0">
+          <div className="flex w-full flex-col items-center justify-end gap-y-2 sm:flex-row sm:gap-2 sm:gap-y-0">
             <Select
               className="w-full xs:w-1/3 xs:shrink-0"
               icon={<MdArrowDropDown />}

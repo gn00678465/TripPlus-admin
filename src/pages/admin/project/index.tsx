@@ -117,7 +117,11 @@ export default function AdminProject() {
         <title>新增專案-TripPlus+</title>
       </Head>
       <div className="h-full min-h-screen bg-gray-100">
-        <Container maxW="760px" px={{ base: '4', sm: '6', md: '12' }}>
+        <Container
+          maxW="760px"
+          px={{ base: '4', sm: '6', md: '12' }}
+          py={{ base: '4', sm: '6' }}
+        >
           <h2 className="py-4 text-2xl font-bold text-gray-500">新增專案</h2>
           <Box as="form" onSubmit={handleSubmit(onSubmit)}>
             <div className="flex w-full flex-col gap-y-6 bg-white px-4 py-12 md:p-12">

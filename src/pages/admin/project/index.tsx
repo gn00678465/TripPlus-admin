@@ -13,6 +13,9 @@ import {
   Button,
   Center,
   Icon,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
   useToast
 } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
@@ -31,6 +34,7 @@ export default function AdminProject() {
   const { mutate } = useSWRConfig();
   const router = useRouter();
   const toast = useToast();
+  const [imgErr, setImgErr] = useState<boolean>(false);
 
   const { trigger } = useUploadImage();
 
@@ -46,11 +50,20 @@ export default function AdminProject() {
     handleSubmit,
     register,
     setValue,
+    getValues,
     formState: { errors }
-  } = useForm<Project.FormInputs>();
+  } = useForm<Project.FormInputs>({
+    defaultValues: {
+      target: 0
+    }
+  });
 
   async function onSubmit(formInput: Project.FormInputs) {
-    if (!file) return;
+    setImgErr(false);
+    if (!file) {
+      setImgErr(true);
+      return;
+    }
     const formData = new FormData();
 
     formData.append('file', file);
@@ -109,7 +122,7 @@ export default function AdminProject() {
           <Box as="form" onSubmit={handleSubmit(onSubmit)}>
             <div className="flex w-full flex-col gap-y-6 bg-white px-4 py-12 md:p-12">
               <Center px={{ base: 4, md: 12 }}>
-                <FormControl>
+                <FormControl isInvalid={imgErr}>
                   <p className="flex w-full items-center justify-end gap-x-4 py-2">
                     <Icon boxSize={6} as={MdCameraEnhance} />
                     <span className="font-semibold text-gray-500">
@@ -143,6 +156,9 @@ export default function AdminProject() {
                       }}
                     ></Input>
                   </FormLabel>
+                  {imgErr && (
+                    <FormErrorMessage>必須選擇專案圖片</FormErrorMessage>
+                  )}
                 </FormControl>
               </Center>
               <FormControl
@@ -150,12 +166,14 @@ export default function AdminProject() {
                 isRequired
                 display="flex"
                 alignItems="center"
+                isInvalid={!!errors.title}
               >
-                <FormLabel flexShrink={0} flexBasis="125px">
+                <FormLabel my={0} flexShrink={0} flexBasis="125px">
                   專案名稱
                 </FormLabel>
                 <Input
                   placeholder="填入專案名稱"
+                  flexBasis="calc(100% - 137px)"
                   {...register('title', {
                     required: '請填入專案名稱'
                   })}
@@ -166,12 +184,18 @@ export default function AdminProject() {
                   </FormErrorMessage>
                 )}
               </FormControl>
-              <FormControl isRequired display="flex" alignItems="center">
-                <FormLabel flexShrink={0} flexBasis="125px">
+              <FormControl
+                isRequired
+                display="flex"
+                alignItems="center"
+                isInvalid={!!errors.teamName}
+              >
+                <FormLabel my={0} flexShrink={0} flexBasis="125px">
                   提案團隊
                 </FormLabel>
                 <Input
                   placeholder="填入提案團隊"
+                  flexBasis="calc(100% - 137px)"
                   {...register('teamName', {
                     required: '請填入提案團隊'
                   })}
@@ -182,14 +206,21 @@ export default function AdminProject() {
                   </FormErrorMessage>
                 )}
               </FormControl>
-              <FormControl isRequired display="flex" alignItems="center">
-                <FormLabel flexShrink={0} flexBasis="125px">
+              <FormControl
+                isRequired
+                display="flex"
+                alignItems="center"
+                isInvalid={!!errors.category}
+              >
+                <FormLabel my={0} flexShrink={0} flexBasis="125px">
                   專案類型
                 </FormLabel>
                 <Select
                   placeholder="選擇專案類型"
+                  flexBasis="calc(100% - 137px)"
                   {...register('category', {
-                    required: '請選擇專案類型'
+                    required: '請選擇專案類型',
+                    valueAsNumber: true
                   })}
                 >
                   <option value={0}>社會計畫</option>
@@ -202,12 +233,18 @@ export default function AdminProject() {
                   </FormErrorMessage>
                 )}
               </FormControl>
-              <FormControl isRequired display="flex" alignItems="center">
-                <FormLabel flexShrink={0} flexBasis="125px">
+              <FormControl
+                isRequired
+                display="flex"
+                alignItems="center"
+                isInvalid={!!errors.startTime}
+              >
+                <FormLabel my={0} flexShrink={0} flexBasis="125px">
                   專案開始時間
                 </FormLabel>
                 <Input
                   placeholder="選擇專案開始時間"
+                  flexBasis="calc(100% - 137px)"
                   type="date"
                   {...register('startTime', {
                     required: '請選擇專案開始時間'
@@ -219,15 +256,30 @@ export default function AdminProject() {
                   </FormErrorMessage>
                 )}
               </FormControl>
-              <FormControl isRequired display="flex" alignItems="center">
-                <FormLabel flexShrink={0} flexBasis="125px">
+              <FormControl
+                isRequired
+                display="flex"
+                alignItems="center"
+                flexWrap="wrap"
+                isInvalid={!!errors.endTime}
+              >
+                <FormLabel my={0} flexShrink={0} flexBasis="125px">
                   專案結束時間
                 </FormLabel>
                 <Input
                   placeholder="專案結束時間"
+                  flexBasis="calc(100% - 137px)"
                   type="date"
                   {...register('endTime', {
-                    required: '專案結束時間'
+                    validate: {
+                      isRequired: (value) => !!value || '請選擇專案結束時間',
+                      isBefore: (value) => {
+                        return (
+                          dayjs(value).isAfter(getValues('startTime')) ||
+                          '專案結束時間不可早於專案開始時間'
+                        );
+                      }
+                    }
                   })}
                 />
                 {!!errors.endTime && (
@@ -236,20 +288,31 @@ export default function AdminProject() {
                   </FormErrorMessage>
                 )}
               </FormControl>
-              <FormControl isRequired display="flex" alignItems="center">
-                <FormLabel flexShrink={0} flexBasis="125px">
+              <FormControl
+                isRequired
+                display="flex"
+                alignItems="center"
+                isInvalid={!!errors.target}
+              >
+                <FormLabel my={0} flexShrink={0} flexBasis="125px">
                   目標金額
                 </FormLabel>
-                <NumberInput className="w-full">
+                <NumberInput
+                  className="w-full"
+                  flexBasis="calc(100% - 137px)"
+                  min={0}
+                >
                   <NumberInputField
                     placeholder="請輸入目標金額"
                     {...register('target', {
-                      required: '目標金額'
+                      required: '目標金額',
+                      valueAsNumber: true
                     })}
-                    onChange={(e) => {
-                      setValue('target', parseFloat(e.target.value));
-                    }}
                   />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
                 </NumberInput>
                 {!!errors.target && (
                   <FormErrorMessage className="visible">

@@ -15,4 +15,7 @@ const colors = {
   light: tailwind.theme?.colors?.light
 };
 
-export const theme = extendTheme({ colors });
+export const theme = extendTheme({
+  colors,
+  breakpoints: tailwind.theme.screens
+});

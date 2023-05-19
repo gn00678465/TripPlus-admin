@@ -4,18 +4,21 @@ import { IconType } from 'react-icons';
 interface SidebarButtonProps extends LinkProps {
   _href: string;
   icon: IconType;
+  isActive: boolean;
 }
 
 export default function SidebarButton({
   _href,
   children,
   icon,
+  isActive,
   ...rest
 }: SidebarButtonProps) {
   return (
     <Link
       as={NextLink}
       href={_href}
+      aria-current={isActive ? 'page' : undefined}
       h="auto"
       fontSize={{ base: 'sm', sm: '16px' }}
       fontWeight={{ base: 500 }}

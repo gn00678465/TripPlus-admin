@@ -21,6 +21,8 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
   const [isLargerSM] = useMediaQuery('(min-width: 640px)');
   const router = useRouter();
 
+  const { id } = router.query;
+
   return (
     <Box
       h="full"
@@ -59,21 +61,24 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
           className="sm:gap-y-2"
         >
           <SidebarButton
-            _href={`/admin/${router.query.id}/dashboard`}
+            _href={`/admin/${id}/dashboard`}
             fontWeight={{ base: 400 }}
             icon={SlGrid}
+            isActive={router.asPath === `/admin/${id}/dashboard`}
           >
             Dashboard
           </SidebarButton>
           <SidebarButton
-            _href={`/admin/${router.query.id}/info`}
+            _href={`/admin/${id}/info`}
             icon={FaRegEdit}
+            isActive={router.asPath === `/admin/${id}/info`}
           >
             專案管理
           </SidebarButton>
           <SidebarButton
             _href={`/admin/${router.query.id}/order`}
             icon={AiOutlineFileText}
+            isActive={router.asPath === `/admin/${id}/order`}
           >
             訂單管理
           </SidebarButton>

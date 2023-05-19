@@ -19,7 +19,6 @@ import {
 } from '@chakra-ui/react';
 import { useMediaQuery } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { DropdownOptions } from './components';
 import { DataTable, Pagination } from '@/components';
 import { MdAdd, MdArrowDropDown, MdOutlineSearch } from 'react-icons/md';
 import { FiEdit } from 'react-icons/fi';
@@ -109,19 +108,34 @@ const data: Data[] = [
   }
 ];
 
-const category: DropdownOptions[] = [
+interface SelectOptions {
+  value: string;
+  label: string;
+}
+
+const category: SelectOptions[] = [
   {
-    key: 'funding',
-    label: '募資',
-    onClick: () => {}
+    value: 'project',
+    label: '募資'
+  },
+  {
+    value: 'product',
+    label: '商品'
   }
 ];
 
-const status: DropdownOptions[] = [
+const status: SelectOptions[] = [
   {
-    key: 'draft',
-    label: '草稿',
-    onClick: () => {}
+    value: 'draft',
+    label: '草稿'
+  },
+  {
+    value: 'progress',
+    label: '進行中'
+  },
+  {
+    value: 'complete',
+    label: '已結束'
   }
 ];
 
@@ -300,7 +314,7 @@ const AdminProjects = () => {
               onChange={onCategoryChange}
             >
               {category.map((item) => (
-                <option key={item.key} value={item.key}>
+                <option key={item.value} value={item.value}>
                   {item.label}
                 </option>
               ))}
@@ -312,7 +326,7 @@ const AdminProjects = () => {
               onChange={onStatusChange}
             >
               {status.map((item) => (
-                <option key={item.key} value={item.key}>
+                <option key={item.value} value={item.value}>
                   {item.label}
                 </option>
               ))}

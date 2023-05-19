@@ -1,4 +1,4 @@
-import { Stack, Text } from '@chakra-ui/react';
+import { Stack, Text, StackProps } from '@chakra-ui/react';
 import {
   MdKeyboardDoubleArrowLeft,
   MdKeyboardDoubleArrowRight,
@@ -8,7 +8,7 @@ import {
 import { PaginationItem, PaginationButton } from '.';
 import { PaginationItemCommonProps } from './types';
 
-interface PaginationProps extends PaginationItemCommonProps {
+interface PaginationProps extends PaginationItemCommonProps, StackProps {
   page: number;
   pageCount: number;
   siblingsCount?: number;

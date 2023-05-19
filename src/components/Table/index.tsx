@@ -20,22 +20,22 @@ import {
 } from '@chakra-ui/react';
 import { SlDrawer } from 'react-icons/sl';
 
-export type DataTableProps<T extends object> = {
+export interface DataTableProps<T extends object> extends TableContainerProps {
   data: T[];
   columns: ColumnDef<T, any>[];
-  height: TableContainerProps['maxHeight'];
   pagination?: {
     page: number;
     pageSize: number;
     pageCount: number;
   };
-};
+}
 
 export function DataTable<T extends object>({
   data,
   columns,
   height,
-  pagination
+  pagination,
+  ...rest
 }: DataTableProps<T>) {
   const table = useReactTable({
     columns,
@@ -53,7 +53,7 @@ export function DataTable<T extends object>({
   });
 
   return (
-    <TableContainer overflowY="auto" maxHeight={height || 'auto'}>
+    <TableContainer overflowY="auto" {...rest}>
       <Table>
         <Thead position="sticky" top={0} bgColor="white" zIndex={1}>
           {table.getHeaderGroups().map((headerGroup) => (

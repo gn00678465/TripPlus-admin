@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import type { ReactElement } from 'react';
 import { BlankLayout } from '@/components';
 import {
@@ -13,7 +13,9 @@ import {
   Icon,
   Tag,
   IconButton,
-  Select
+  Select,
+  Flex,
+  Box
 } from '@chakra-ui/react';
 import { useMediaQuery } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -125,17 +127,22 @@ const status: DropdownOptions[] = [
 
 const AdminProjects = () => {
   const headerRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
 
   const windowSize = useWindowSize({});
-  const [headerWidth, headerHeight] = useElementSize(headerRef);
-  const [searchWidth, searchHeight] = useElementSize(searchRef);
-  const [paginationWidth, paginationHeight] = useElementSize(paginationRef);
+  const [headerW, headerH] = useElementSize(headerRef);
+  const [toolbarW, toolbarH] = useElementSize(toolbarRef);
+  const [paginationW, paginationH] = useElementSize(paginationRef);
 
   const [total, setTotal] = useState(100);
+  const [tableData, setTableData] = useState<Data[]>([]);
 
-  const [isMobile] = useMediaQuery('(max-width: 375px)', {
+  const [isLargeMobile] = useMediaQuery('(min-width: 375px)', {
+    ssr: true,
+    fallback: false
+  });
+  const [isLargeDesktop] = useMediaQuery('(min-width: 1024px)', {
     ssr: true,
     fallback: false
   });
@@ -146,14 +153,18 @@ const AdminProjects = () => {
     defaultPageSize: 10
   });
 
+  useEffect(() => {
+    window.setTimeout(() => {
+      setTableData(data);
+    }, 200);
+  }, []);
+
   const tableHeight = useMemo(() => {
-    if (windowSize.width > 1080) {
-      return (
-        windowSize.height - headerHeight - searchHeight - paginationHeight - 90
-      );
+    if (isLargeDesktop) {
+      return windowSize.height - headerH - toolbarH - paginationH - 64;
     }
     return 'auto';
-  }, [windowSize, headerHeight, searchHeight, paginationHeight]);
+  }, [windowSize, headerH, toolbarH, paginationH, isLargeDesktop]);
 
   const columnHelper = createColumnHelper<Data>();
 
@@ -261,10 +272,10 @@ const AdminProjects = () => {
       <Head>
         <title>專案列表</title>
       </Head>
-      <div className="flex h-full w-full flex-col">
+      <Flex h="full" w="full" flexDirection="column">
         <div
           ref={headerRef}
-          className="flex items-center justify-between p-4 pt-12 md:px-12"
+          className="flex shrink-0 items-center justify-between p-3 pt-12 md:px-12"
         >
           <Heading as="h2" size="xl" noOfLines={1}>
             專案列表
@@ -277,8 +288,8 @@ const AdminProjects = () => {
           </Button>
         </div>
         <div
-          ref={searchRef}
-          className="md: flex bg-gray-200 px-4  py-3 sm:px-12"
+          ref={toolbarRef}
+          className="shrink-0 bg-gray-200 p-3 sm:px-12  md:flex"
         >
           <div className="hidden sm:block sm:shrink-0 md:w-0 xl:w-3/5"></div>
           <div className="flex w-full flex-col items-center justify-end gap-y-3 sm:flex-row sm:gap-2 sm:gap-y-0">
@@ -314,27 +325,33 @@ const AdminProjects = () => {
             </InputGroup>
           </div>
         </div>
-        <div className="grow bg-gray-100 p-4 sm:px-12">
-          <Card borderRadius={2} variant="outline">
-            <CardBody>
+        <Box
+          flexGrow={1}
+          px={{ base: 3, md: 12 }}
+          py={{ base: 3 }}
+          backgroundColor="gray.100"
+        >
+          <Card h="full">
+            <CardBody h="full" position="relative">
               <DataTable
+                h="auto"
+                maxH={tableHeight}
                 columns={columns}
-                data={data}
-                height={tableHeight}
+                data={tableData}
                 pagination={pagination}
               ></DataTable>
               <div
                 ref={paginationRef}
-                className="mt-4 flex flex-col items-center justify-center gap-y-2 px-3 md:flex-row md:justify-between"
+                className="flex w-full flex-col items-center justify-center gap-y-2 pt-4 md:flex-row md:justify-between"
               >
-                <p className="self-start">
+                <p>
                   {from(pagination.page, pagination.pageSize)} of {total}
                 </p>
                 <Pagination
                   page={pagination.page}
                   pageCount={pagination.pageCount}
                   siblingsCount={1}
-                  size={isMobile ? 'xs' : 'sm'}
+                  size={isLargeMobile ? 'sm' : 'xs'}
                   variant="ghost"
                   colorScheme="primary"
                   shape="circle"
@@ -345,8 +362,8 @@ const AdminProjects = () => {
               </div>
             </CardBody>
           </Card>
-        </div>
-      </div>
+        </Box>
+      </Flex>
     </>
   );
 };

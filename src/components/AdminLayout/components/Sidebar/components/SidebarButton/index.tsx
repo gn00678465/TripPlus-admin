@@ -1,22 +1,26 @@
-import { Button, ButtonProps } from '@chakra-ui/react';
-
-interface SidebarButtonProps extends ButtonProps {}
+import NextLink from 'next/link';
+import { Link, LinkProps, Icon, Flex } from '@chakra-ui/react';
+import { IconType } from 'react-icons';
+interface SidebarButtonProps extends LinkProps {
+  _href: string;
+  icon: IconType;
+}
 
 export default function SidebarButton({
+  _href,
   children,
+  icon,
   ...rest
 }: SidebarButtonProps) {
   return (
-    <Button
+    <Link
+      as={NextLink}
+      href={_href}
       h="auto"
       fontSize={{ base: 'sm', sm: '16px' }}
       fontWeight={{ base: 500 }}
       py={{ base: 3, sm: 5 }}
       px={{ base: '22px', sm: 5 }}
-      display={{ base: 'flex' }}
-      alignItems="center"
-      justifyContent={{ base: 'center', sm: 'start' }}
-      flexDirection={{ base: 'column', sm: 'row' }}
       borderRadius={{ base: 4 }}
       backgroundColor="white"
       color="gray-500"
@@ -25,9 +29,20 @@ export default function SidebarButton({
         color: '#008E86',
         backgroundColor: 'secondary'
       }}
-      {...rest}
+      _activeLink={{
+        color: '#008E86',
+        backgroundColor: 'secondary'
+      }}
     >
-      {children}
-    </Button>
+      <Flex
+        alignItems="center"
+        justifyContent={{ base: 'center', sm: 'start' }}
+        flexDirection={{ base: 'column', sm: 'row' }}
+        className="gap-y-3 sm:gap-x-2 sm:gap-y-0"
+      >
+        <Icon as={icon} />
+        {children}
+      </Flex>
+    </Link>
   );
 }

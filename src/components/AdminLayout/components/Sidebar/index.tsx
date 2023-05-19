@@ -1,3 +1,5 @@
+import Image from 'next/image';
+import { useRouter } from 'next/router';
 import {
   Flex,
   Button,
@@ -12,12 +14,12 @@ import { SlGrid } from 'react-icons/sl';
 import { FaRegEdit } from 'react-icons/fa';
 import { AiOutlineFileText } from 'react-icons/ai';
 import { SidebarButton } from './components';
-import Image from 'next/image';
 
 interface SidebarProps extends BoxProps {}
 
 const Sidebar = ({ ...rest }: SidebarProps) => {
   const [isLargerSM] = useMediaQuery('(min-width: 640px)');
+  const router = useRouter();
 
   return (
     <Box
@@ -35,6 +37,7 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
             width={isLargerSM ? 172 : 129}
             height={isLargerSM ? 48 : 36}
             alt="TripPlus-Admin"
+            priority
           ></Image>
         </div>
         <div className="my-5 flex flex-col items-center justify-center gap-y-3 sm:my-10">
@@ -56,36 +59,21 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
           className="sm:gap-y-2"
         >
           <SidebarButton
+            _href={`/admin/${router.query.id}/dashboard`}
             fontWeight={{ base: 400 }}
-            leftIcon={
-              <Icon
-                mb={{ base: 3, sm: 0 }}
-                mr={{ base: 0, sm: 2 }}
-                as={SlGrid}
-              />
-            }
+            icon={SlGrid}
           >
             Dashboard
           </SidebarButton>
           <SidebarButton
-            leftIcon={
-              <Icon
-                mb={{ base: 3, sm: 0 }}
-                mr={{ base: 0, sm: 2 }}
-                as={FaRegEdit}
-              />
-            }
+            _href={`/admin/${router.query.id}/info`}
+            icon={FaRegEdit}
           >
             專案管理
           </SidebarButton>
           <SidebarButton
-            leftIcon={
-              <Icon
-                mb={{ base: 3, sm: 0 }}
-                mr={{ base: 0, sm: 2 }}
-                as={AiOutlineFileText}
-              />
-            }
+            _href={`/admin/${router.query.id}/order`}
+            icon={AiOutlineFileText}
           >
             訂單管理
           </SidebarButton>

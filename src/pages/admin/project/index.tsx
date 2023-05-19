@@ -58,6 +58,21 @@ export default function AdminProject() {
     }
   });
 
+  const categoryOptions = [
+    {
+      value: 0,
+      label: '社會計畫'
+    },
+    {
+      value: 1,
+      label: '創新設計'
+    },
+    {
+      value: 2,
+      label: '精選商品'
+    }
+  ];
+
   async function onSubmit(formInput: Project.FormInputs) {
     setImgErr(false);
     if (!file) {
@@ -85,6 +100,8 @@ export default function AdminProject() {
             endTime: handleEndTime(formInput.endTime),
             keyVision: data.data.imageUrl
           };
+
+          setValue('keyVision', data.data.imageUrl);
 
           mutate('/post/admin/project', async () => {
             const res = await apiPostProject(params);
@@ -227,9 +244,11 @@ export default function AdminProject() {
                     valueAsNumber: true
                   })}
                 >
-                  <option value={0}>社會計畫</option>
-                  <option value={1}>精選商品</option>
-                  <option value={3}>創新設計</option>
+                  {categoryOptions.map((option) => (
+                    <option value={option.value} key={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </Select>
                 {!!errors.category && (
                   <FormErrorMessage className="visible">

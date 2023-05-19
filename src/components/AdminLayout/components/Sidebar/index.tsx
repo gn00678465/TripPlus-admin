@@ -5,7 +5,6 @@ import {
   Button,
   Box,
   BoxProps,
-  Icon,
   useMediaQuery,
   Avatar,
   Text
@@ -13,7 +12,7 @@ import {
 import { SlGrid } from 'react-icons/sl';
 import { FaRegEdit } from 'react-icons/fa';
 import { AiOutlineFileText } from 'react-icons/ai';
-import { SidebarButton } from './components';
+import { SidebarButton, SidebarButtonProps } from './components';
 
 interface SidebarProps extends BoxProps {}
 
@@ -22,6 +21,28 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
   const router = useRouter();
 
   const { id } = router.query;
+
+  const menu: {
+    title: string;
+    href: string;
+    props: Omit<SidebarButtonProps, '_href' | 'isActive'>;
+  }[] = [
+    {
+      title: 'Dashboard',
+      href: `/admin/${id}/dashboard`,
+      props: { icon: SlGrid, fontWeight: { base: 400 } }
+    },
+    {
+      title: '專案管理',
+      href: `/admin/${router.query.id}/info`,
+      props: { icon: FaRegEdit, fontWeight: { base: 500 } }
+    },
+    {
+      title: '訂單管理',
+      href: `/admin/${router.query.id}/order`,
+      props: { icon: AiOutlineFileText, fontWeight: { base: 500 } }
+    }
+  ];
 
   return (
     <Box
@@ -60,28 +81,16 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
           justifyContent={{ base: 'space-between' }}
           className="sm:gap-y-2"
         >
-          <SidebarButton
-            _href={`/admin/${id}/dashboard`}
-            fontWeight={{ base: 400 }}
-            icon={SlGrid}
-            isActive={router.asPath === `/admin/${id}/dashboard`}
-          >
-            Dashboard
-          </SidebarButton>
-          <SidebarButton
-            _href={`/admin/${id}/info`}
-            icon={FaRegEdit}
-            isActive={router.asPath === `/admin/${id}/info`}
-          >
-            專案管理
-          </SidebarButton>
-          <SidebarButton
-            _href={`/admin/${router.query.id}/order`}
-            icon={AiOutlineFileText}
-            isActive={router.asPath === `/admin/${id}/order`}
-          >
-            訂單管理
-          </SidebarButton>
+          {menu.map((item) => (
+            <SidebarButton
+              key={item.href}
+              _href={item.href}
+              isActive={item.href === router.asPath}
+              {...item.props}
+            >
+              {item.title}
+            </SidebarButton>
+          ))}
         </Flex>
         <Button
           h="auto"

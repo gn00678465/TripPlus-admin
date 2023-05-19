@@ -1,7 +1,7 @@
 import NextLink from 'next/link';
 import { Link, LinkProps, Icon, Flex } from '@chakra-ui/react';
 import { IconType } from 'react-icons';
-interface SidebarButtonProps extends LinkProps {
+export interface SidebarButtonProps extends LinkProps {
   _href: string;
   icon: IconType;
   isActive: boolean;

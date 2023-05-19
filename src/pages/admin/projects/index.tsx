@@ -356,7 +356,7 @@ const AdminProjects = () => {
               ></DataTable>
               <div
                 ref={paginationRef}
-                className="flex w-full flex-col items-center justify-center gap-y-2 pt-4 md:flex-row md:justify-between"
+                className="absolute inset-x-0 bottom-0 flex w-full flex-col items-center justify-center gap-y-2 px-5 pb-5 pt-4 md:flex-row md:justify-between"
               >
                 <p>
                   {from(pagination.page, pagination.pageSize)} of {total}

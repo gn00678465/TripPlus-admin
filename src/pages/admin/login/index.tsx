@@ -18,9 +18,10 @@ import { useForm } from 'react-hook-form';
 import { Icon } from '@chakra-ui/react';
 import { MdAccountCircle, MdVpnKey } from 'react-icons/md';
 import bg from '@/assets/images/login-bg.jpg';
-import { login } from '@/service/api';
-import { safeAwait, localStg } from '@/utils';
+import { login } from '@/api';
+import { safeAwait } from '@/utils';
 import { useRouter } from 'next/router';
+import { useAuthStore } from '@/store';
 
 type FormInputs = {
   email: string;
@@ -30,6 +31,7 @@ type FormInputs = {
 export default function AdminLogin() {
   const router = useRouter();
   const toast = useToast();
+  const setUserInfo = useAuthStore((state) => state.setUserInfo);
   const {
     handleSubmit,
     register,
@@ -59,7 +61,7 @@ export default function AdminLogin() {
         });
         router.push('/');
       } else {
-        localStg.set('userInfo', res.data);
+        setUserInfo(res.data);
         router.push('/admin/projects');
       }
     }

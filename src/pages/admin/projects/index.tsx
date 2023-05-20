@@ -1,5 +1,9 @@
 import Head from 'next/head';
-import { useState, useRef, useMemo, useEffect } from 'react';
+import NextLink from 'next/link';
+import { useRouter } from 'next/router';
+import { useState, useRef, useMemo } from 'react';
+import { useImmerReducer } from 'use-immer';
+import { debounce } from 'lodash-es';
 import type { ReactElement } from 'react';
 import { BlankLayout } from '@/components';
 import {
@@ -24,96 +28,17 @@ import { MdAdd, MdArrowDropDown, MdOutlineSearch } from 'react-icons/md';
 import { FiEdit } from 'react-icons/fi';
 import { IoNewspaperOutline } from 'react-icons/io5';
 import { RiDashboard3Line } from 'react-icons/ri';
-import { currency } from '@/utils';
+import { currency, safeAwait } from '@/utils';
 import { useElementSize, usePagination, useWindowSize } from '@/hooks';
-
-type Data = {
-  category: string;
-  status: string;
-  title: string;
-  team: string;
-  sum: number;
-};
-
-const data: Data[] = [
-  {
-    category: '募資',
-    status: '草稿',
-    title: '台灣世界展望會「籃海計畫」用籃球教育翻轉偏鄉孩子人生...',
-    team: '台灣世界展望會',
-    sum: 100000
-  },
-  {
-    category: '商品',
-    status: '草稿',
-    title: '台灣世界展望會「籃海計畫」用籃球教育翻轉偏鄉孩子人生...',
-    team: '台灣世界展望會',
-    sum: 100000
-  },
-  {
-    category: '募資',
-    status: '草稿',
-    title: '台灣世界展望會「籃海計畫」用籃球教育翻轉偏鄉孩子人生...',
-    team: '台灣世界展望會',
-    sum: 100000
-  },
-  {
-    category: '募資',
-    status: '草稿',
-    title: '台灣世界展望會「籃海計畫」用籃球教育翻轉偏鄉孩子人生...',
-    team: '台灣世界展望會',
-    sum: 100000
-  },
-  {
-    category: '募資',
-    status: '草稿',
-    title: '台灣世界展望會「籃海計畫」用籃球教育翻轉偏鄉孩子人生...',
-    team: '台灣世界展望會',
-    sum: 100000
-  },
-  {
-    category: '募資',
-    status: '草稿',
-    title: '台灣世界展望會「籃海計畫」用籃球教育翻轉偏鄉孩子人生...',
-    team: '台灣世界展望會',
-    sum: 100000
-  },
-  {
-    category: '募資',
-    status: '草稿',
-    title: '台灣世界展望會「籃海計畫」用籃球教育翻轉偏鄉孩子人生...',
-    team: '台灣世界展望會',
-    sum: 100000
-  },
-  {
-    category: '募資',
-    status: '草稿',
-    title: '台灣世界展望會「籃海計畫」用籃球教育翻轉偏鄉孩子人生...',
-    team: '台灣世界展望會',
-    sum: 100000
-  },
-  {
-    category: '募資',
-    status: '草稿',
-    title: '台灣世界展望會「籃海計畫」用籃球教育翻轉偏鄉孩子人生...',
-    team: '台灣世界展望會',
-    sum: 100000
-  },
-  {
-    category: '募資',
-    status: '草稿',
-    title: '台灣世界展望會「籃海計畫」用籃球教育翻轉偏鄉孩子人生...',
-    team: '台灣世界展望會',
-    sum: 100000
-  }
-];
+import useSwr from 'swr';
+import { apiFetchProjects } from '@/api';
 
 interface SelectOptions {
   value: string;
   label: string;
 }
 
-const category: SelectOptions[] = [
+const type: SelectOptions[] = [
   {
     value: 'project',
     label: '募資'
@@ -140,17 +65,19 @@ const status: SelectOptions[] = [
 ];
 
 const AdminProjects = () => {
+  const router = useRouter();
   const headerRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
+
+  const compositionLockRef = useRef<boolean>(false);
 
   const windowSize = useWindowSize({});
   const [headerW, headerH] = useElementSize(headerRef);
   const [toolbarW, toolbarH] = useElementSize(toolbarRef);
   const [paginationW, paginationH] = useElementSize(paginationRef);
 
-  const [total, setTotal] = useState(100);
-  const [tableData, setTableData] = useState<Data[]>([]);
+  const [total, setTotal] = useState(0);
 
   const [isLargeMobile] = useMediaQuery('(min-width: 375px)', {
     ssr: true,
@@ -167,11 +94,80 @@ const AdminProjects = () => {
     defaultPageSize: 10
   });
 
-  useEffect(() => {
-    window.setTimeout(() => {
-      setTableData(data);
-    }, 200);
-  }, []);
+  interface QueryState {
+    query?: null | string;
+    status?: null | string;
+    type?: null | string;
+  }
+
+  interface QueryAction {
+    type: 'setQuery' | 'setStatus' | 'setType';
+    payload: string;
+  }
+
+  const initQuery: QueryState = {};
+  const [query, dispatch] = useImmerReducer(
+    (draft: QueryState, action: QueryAction) => {
+      const actionMap = {
+        setQuery: (payload: string) => {
+          if (payload) {
+            draft.query = payload;
+          } else {
+            delete draft.query;
+          }
+        },
+        setStatus: (payload: string) => {
+          if (payload) {
+            draft.status = payload;
+          } else {
+            delete draft.status;
+          }
+        },
+        setType: (payload: string) => {
+          if (payload) {
+            draft.type = payload;
+          } else {
+            delete draft.type;
+          }
+        }
+      };
+
+      const has = action.type in actionMap;
+      has && actionMap[action.type](action.payload);
+    },
+    initQuery
+  );
+
+  const qs = useMemo(() => {
+    const params = {
+      page: pagination.page,
+      limit: pagination.pageSize,
+      ...query
+    };
+    return new URLSearchParams(params as any).toString();
+  }, [pagination, query]);
+
+  // query
+  const { data: projectListData, isLoading } = useSwr(
+    ['/admin/projects', qs],
+    async ([key, qs]) => {
+      console.log(qs);
+      const [err, data] = await safeAwait(apiFetchProjects(qs));
+      return new Promise<ApiProject.ProjectList>((resolve, reject) => {
+        if (data) {
+          resolve(data.data || []);
+        }
+        if (err) {
+          reject(err);
+        }
+      });
+    },
+    {
+      onSuccess(data, key, config) {
+        setTotal(data.total);
+      }
+    }
+  );
 
   const tableHeight = useMemo(() => {
     if (isLargeDesktop) {
@@ -180,16 +176,16 @@ const AdminProjects = () => {
     return 'auto';
   }, [windowSize, headerH, toolbarH, paginationH, isLargeDesktop]);
 
-  const columnHelper = createColumnHelper<Data>();
+  const columnHelper = createColumnHelper<ApiProject.ProjectItem>();
 
   const columns = [
     columnHelper.accessor('status', {
-      cell: (info) => info.getValue(),
+      cell: (info) => renderStatusTag(info.getValue()),
       header: '狀態',
       size: 30
     }),
-    columnHelper.accessor('category', {
-      cell: (info) => renderCategoryTag(info.getValue()),
+    columnHelper.accessor('type', {
+      cell: (info) => renderTypeTag(info.getValue()),
       header: '類型',
       size: 30
     }),
@@ -198,12 +194,12 @@ const AdminProjects = () => {
       header: '專案名稱',
       size: 200
     }),
-    columnHelper.accessor('team', {
-      cell: (info) => info.getValue(),
+    columnHelper.accessor('teamId', {
+      cell: (info) => info.getValue().title,
       header: '提案團隊',
       size: 50
     }),
-    columnHelper.accessor('sum', {
+    columnHelper.accessor('target', {
       cell: (info) => currency(info.getValue(), 'zh-TW', 'TWD'),
       header: '集資金額',
       size: 60,
@@ -216,30 +212,33 @@ const AdminProjects = () => {
       cell: (info) => (
         <div className="flex items-center justify-center gap-x-2">
           <IconButton
-            aria-label=""
+            aria-label="Dashboard"
+            title="Dashboard"
             size="sm"
             icon={<Icon as={RiDashboard3Line} />}
             variant="outline"
             onClick={() => {
-              console.log(info);
+              router.push(`/admin/${info.row.original._id}/dashboard`);
             }}
           ></IconButton>
           <IconButton
-            aria-label=""
+            aria-label="專案管理"
+            title="專案管理"
             size="sm"
             icon={<Icon as={FiEdit} />}
             variant="outline"
             onClick={() => {
-              console.log(info);
+              router.push(`/admin/${info.row.original._id}/info`);
             }}
           ></IconButton>
           <IconButton
-            aria-label=""
+            aria-label="訂單管理"
+            title="訂單管理"
             size="sm"
             icon={<Icon as={IoNewspaperOutline} />}
             variant="outline"
             onClick={() => {
-              console.log(info);
+              router.push(`/admin/${info.row.original._id}/order`);
             }}
           ></IconButton>
         </div>
@@ -249,22 +248,47 @@ const AdminProjects = () => {
     })
   ];
 
-  function renderCategoryTag(value: string) {
+  function renderStatusTag(value: string) {
     switch (value) {
-      case '募資':
-        return (
-          <Tag colorScheme="primary" bgColor="primary.500" color="white">
-            {value}
-          </Tag>
-        );
-      case '商品':
+      case 'draft':
         return (
           <Tag color="white" bgColor="gray.500">
-            {value}
+            草稿
+          </Tag>
+        );
+      case 'progress':
+        return (
+          <Tag color="white" bgColor="gray.500">
+            進行中
+          </Tag>
+        );
+      case 'complete':
+        return (
+          <Tag color="white" bgColor="gray.500">
+            已結束
           </Tag>
         );
       default:
-        return <Tag>{value}</Tag>;
+        return <Tag>錯誤</Tag>;
+    }
+  }
+
+  function renderTypeTag(value: string) {
+    switch (value) {
+      case 'project':
+        return (
+          <Tag colorScheme="primary" bgColor="primary.500" color="white">
+            募資
+          </Tag>
+        );
+      case 'product':
+        return (
+          <Tag color="white" bgColor="gray.500">
+            商品
+          </Tag>
+        );
+      default:
+        return <Tag>錯誤</Tag>;
     }
   }
 
@@ -273,12 +297,17 @@ const AdminProjects = () => {
     return `${f} - ${f + size - 1}`;
   }
 
+  const debounceInputQ = debounce(function (e) {
+    if (compositionLockRef.current) return;
+    dispatch({ type: 'setQuery', payload: e.target.value });
+  }, 200);
+
   function onStatusChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    console.log(e.target.value);
+    dispatch({ type: 'setStatus', payload: e.target.value });
   }
 
-  function onCategoryChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    console.log(e.target.value);
+  function onTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    dispatch({ type: 'setType', payload: e.target.value });
   }
 
   return (
@@ -294,33 +323,36 @@ const AdminProjects = () => {
           <Heading as="h2" size="xl" noOfLines={1}>
             專案列表
           </Heading>
-          <Button
-            leftIcon={<Icon as={MdAdd} className="text-xl" />}
-            colorScheme="primary"
-          >
-            新增專案
-          </Button>
+          <NextLink href="/admin/project" passHref legacyBehavior>
+            <Button
+              as="a"
+              leftIcon={<Icon as={MdAdd} className="text-xl" />}
+              colorScheme="primary"
+            >
+              新增專案
+            </Button>
+          </NextLink>
         </div>
         <div
           ref={toolbarRef}
           className="shrink-0 bg-gray-200 p-3 sm:px-12  md:flex"
         >
-          <div className="hidden sm:block sm:shrink-0 md:w-0 xl:w-3/5"></div>
+          <div className="hidden sm:block sm:shrink-0 md:w-0 xl:w-1/2"></div>
           <div className="flex w-full flex-col items-center justify-end gap-y-3 sm:flex-row sm:gap-2 sm:gap-y-0">
             <Select
-              className="w-full xs:w-1/3 xs:shrink-0"
+              className="w-full xs:w-1/3 xs:shrink-0 md:w-1/4"
               icon={<MdArrowDropDown />}
               placeholder="全部類型"
-              onChange={onCategoryChange}
+              onChange={onTypeChange}
             >
-              {category.map((item) => (
+              {type.map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
                 </option>
               ))}
             </Select>
             <Select
-              className="w-full xs:w-1/3 xs:shrink-0"
+              className="w-full xs:w-1/3 xs:shrink-0 md:w-1/4"
               icon={<MdArrowDropDown />}
               placeholder="全部狀態"
               onChange={onStatusChange}
@@ -331,8 +363,19 @@ const AdminProjects = () => {
                 </option>
               ))}
             </Select>
-            <InputGroup className="w-full xs:w-1/3">
-              <Input placeholder="搜尋專案相關資料" bg="white" />
+            <InputGroup className="w-full xs:w-1/3 md:w-2/4">
+              <Input
+                placeholder="搜尋專案相關資料"
+                bg="white"
+                onChange={debounceInputQ}
+                onCompositionStart={(e) => {
+                  compositionLockRef.current = true;
+                }}
+                onCompositionEnd={(e) => {
+                  compositionLockRef.current = false;
+                  debounceInputQ(e);
+                }}
+              />
               <InputRightElement>
                 <Icon as={MdOutlineSearch} />
               </InputRightElement>
@@ -351,8 +394,9 @@ const AdminProjects = () => {
                 h="auto"
                 maxH={tableHeight}
                 columns={columns}
-                data={tableData}
+                data={projectListData?.items || []}
                 pagination={pagination}
+                loading={isLoading}
               ></DataTable>
               <div
                 ref={paginationRef}

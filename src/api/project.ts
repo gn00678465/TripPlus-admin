@@ -7,3 +7,13 @@ export function apiPostProject(
 ) {
   return request.post<ApiProject.ProjectReturn>('/admin/project', data, config);
 }
+
+export function apiFetchProjects(
+  query: string = '',
+  config?: AxiosRequestConfig
+) {
+  return request.get<ApiProject.ProjectList>(
+    !query ? '/admin/project' : `/admin/project?${query}`,
+    config
+  );
+}

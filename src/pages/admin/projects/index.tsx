@@ -19,7 +19,8 @@ import {
   IconButton,
   Select,
   Flex,
-  Box
+  Box,
+  Link
 } from '@chakra-ui/react';
 import { useMediaQuery } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -190,7 +191,11 @@ const AdminProjects = () => {
       size: 30
     }),
     columnHelper.accessor('title', {
-      cell: (info) => info.getValue(),
+      cell: (info) => (
+        <Link href={`/admin/${info.row.original._id}/dashboard`} as={NextLink}>
+          {info.getValue()}
+        </Link>
+      ),
       header: '專案名稱',
       size: 200
     }),

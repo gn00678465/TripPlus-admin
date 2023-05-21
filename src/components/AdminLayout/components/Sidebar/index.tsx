@@ -34,12 +34,12 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
     },
     {
       title: '專案管理',
-      href: `/admin/${router.query.id}/info`,
+      href: `/admin/${id}/settings`,
       props: { icon: FaRegEdit, fontWeight: { base: 500 } }
     },
     {
       title: '訂單管理',
-      href: `/admin/${router.query.id}/order`,
+      href: `/admin/${id}/order`,
       props: { icon: AiOutlineFileText, fontWeight: { base: 500 } }
     }
   ];

@@ -233,7 +233,7 @@ const AdminProjects = () => {
             icon={<Icon as={FiEdit} />}
             variant="outline"
             onClick={() => {
-              router.push(`/admin/${info.row.original._id}/info`);
+              router.push(`/admin/${info.row.original._id}/settings`);
             }}
           ></IconButton>
           <IconButton

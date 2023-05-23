@@ -20,7 +20,7 @@ export default function SidebarButton({
       href={_href}
       aria-current={isActive ? 'page' : undefined}
       h="auto"
-      w={28}
+      w={{ base: 28, md: 'auto' }}
       fontSize={{ base: 'sm', sm: '16px' }}
       fontWeight={{ base: 500 }}
       py={{ base: 3, md: 5 }}

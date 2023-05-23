@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import { ReactElement, useState, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import {
@@ -29,7 +29,8 @@ import {
   Icon,
   List,
   ListItem,
-  Link
+  Link,
+  Skeleton
 } from '@chakra-ui/react';
 import type { BoxProps } from '@chakra-ui/react';
 import { AdminLayout, Navbar, ImageFallback } from '@/components';
@@ -46,16 +47,17 @@ import {
 import { MdCameraEnhance } from 'react-icons/md';
 import dayjs from 'dayjs';
 import NoImage from '@/assets/images/no-image.png';
+import { useFileReader } from '@/hooks';
 
 interface SettingsBlockProps extends Omit<BoxProps, 'children'> {
-  renderHeader?: JSX.Element;
+  title: string;
   renderButton?: JSX.Element;
   children?: string | JSX.Element | JSX.Element[] | (() => JSX.Element);
 }
 
 const SettingsBlock = ({
   children,
-  renderHeader,
+  title,
   renderButton,
   ...rest
 }: SettingsBlockProps) => {
@@ -67,7 +69,9 @@ const SettingsBlock = ({
         justifyContent="space-between"
         alignItems="center"
       >
-        {renderHeader}
+        <Heading as="h3" fontSize="2xl">
+          {title}
+        </Heading>
         {renderButton}
       </Flex>
       <Divider orientation="horizontal" />
@@ -120,9 +124,61 @@ const FormItem = ({
   );
 };
 
-const KeyVisionSettings = () => {
+const SwitchField = ({
+  children,
+  text = '',
+  isEdit = false,
+  isLoading = false
+}: {
+  children: JSX.Element;
+  text?: string;
+  isEdit?: boolean;
+  isLoading?: boolean;
+}) => {
+  return (
+    <Skeleton isLoaded={!isLoading}>
+      {isEdit ? (
+        children
+      ) : (
+        <Text
+          w="full"
+          visibility={text ? 'visible' : 'hidden'}
+          pl={1}
+          fontSize="20px"
+          lineHeight="32px"
+        >
+          {text ? text : 'invisible'}
+        </Text>
+      )}
+    </Skeleton>
+  );
+};
+
+const KeyVisionSettings = ({
+  isEdit,
+  isLoading,
+  setEdit
+}: {
+  isEdit?: boolean;
+  isLoading?: boolean;
+  setEdit: (arg: boolean) => void;
+}) => {
   const { handleSubmit, register, ...rest } =
     useForm<Project.FormKeyVisionSettings>();
+  const [file, setFile] = useState<undefined | File>();
+
+  function onClickCancel() {
+    setEdit(!isEdit);
+    rest.reset();
+    setFile(undefined);
+  }
+
+  const { dataURL } = useFileReader(file);
+
+  const image = useMemo(() => {
+    if (dataURL) return dataURL;
+    return NoImage.src;
+  }, [dataURL]);
 
   const onSubmit = (data: Project.FormKeyVisionSettings) => {
     console.log(data);
@@ -143,10 +199,11 @@ const KeyVisionSettings = () => {
           <FormLabel
             mx="0"
             p="0"
-            className="relative aspect-[10/7] w-full cursor-pointer"
+            className="relative aspect-[10/7] w-full"
+            cursor={isEdit ? 'pointer' : 'auto'}
           >
             <ImageFallback
-              src={NoImage.src}
+              src={image}
               fallbackSrc={NoImage.src}
               alt="專案圖片"
               fill
@@ -162,25 +219,33 @@ const KeyVisionSettings = () => {
               variant="unstyled"
               type="file"
               accept="image/*"
+              disabled={!isEdit}
+              onChange={(e) => {
+                setFile(e.target.files?.[0]);
+              }}
             ></Input>
           </FormLabel>
         </FormControl>
         <FormItem label="集資影片" placeholder="請填入集資影片" path="video">
-          <Input size="sm" {...register('video')}></Input>
+          <SwitchField text="text" isEdit={isEdit} isLoading={isLoading}>
+            <Input size="sm" {...register('video')}></Input>
+          </SwitchField>
         </FormItem>
-        <div className="flex items-center justify-end gap-x-2 self-end">
-          <Button size="sm" variant="outline">
-            取消
-          </Button>
-          <Button
-            size="sm"
-            type="submit"
-            colorScheme="primary"
-            variant="outline"
-          >
-            儲存
-          </Button>
-        </div>
+        {isEdit && (
+          <div className="flex items-center justify-end gap-x-2 self-end">
+            <Button size="sm" variant="outline" onClick={onClickCancel}>
+              取消
+            </Button>
+            <Button
+              size="sm"
+              type="submit"
+              colorScheme="primary"
+              variant="outline"
+            >
+              儲存
+            </Button>
+          </div>
+        )}
       </Box>
     </FormProvider>
   );
@@ -188,10 +253,12 @@ const KeyVisionSettings = () => {
 
 const BasicSettings = ({
   isEdit,
-  isLoading
+  isLoading,
+  setEdit
 }: {
   isEdit?: boolean;
   isLoading?: boolean;
+  setEdit: (arg: boolean) => void;
 }) => {
   const methods = useForm<Project.FormBasicSettings>({});
 
@@ -222,85 +289,99 @@ const BasicSettings = ({
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <FormItem label="專案名稱" placeholder="請填入專案名稱" path="title">
-          <Input
-            size="sm"
-            {...methods.register('title', {
-              required: '請填入專案名稱'
-            })}
-          ></Input>
+          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+            <Input
+              size="sm"
+              {...methods.register('title', {
+                required: '請填入專案名稱'
+              })}
+            ></Input>
+          </SwitchField>
         </FormItem>
         <FormItem label="專案類型" path="title">
-          <Select
-            size="sm"
-            placeholder="選擇專案類型"
-            flexBasis="calc(100% - 137px)"
-            {...methods.register('category', {
-              required: '請選擇專案類型',
-              valueAsNumber: true
-            })}
-          >
-            {categoryOptions.map((option) => (
-              <option value={option.value} key={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
+          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+            <Select
+              size="sm"
+              placeholder="選擇專案類型"
+              flexBasis="calc(100% - 137px)"
+              {...methods.register('category', {
+                required: '請選擇專案類型',
+                valueAsNumber: true
+              })}
+            >
+              {categoryOptions.map((option) => (
+                <option value={option.value} key={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </SwitchField>
         </FormItem>
         <FormItem label="專案摘要" placeholder="請填入專案摘要" path="summary">
-          <Input
-            size="sm"
-            {...methods.register('summary', {
-              required: '請填入專案摘要'
-            })}
-          ></Input>
+          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+            <Input
+              size="sm"
+              {...methods.register('summary', {
+                required: '請填入專案摘要'
+              })}
+            ></Input>
+          </SwitchField>
         </FormItem>
         <FormItem
           label="專案開始時間"
           placeholder="請選擇專案開始時間"
           path="startTime"
         >
-          <Input
-            size="sm"
-            placeholder="選擇專案開始時間"
-            type="date"
-            {...methods.register('startTime', {
-              required: '請選擇專案開始時間'
-            })}
-          />
+          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+            <Input
+              size="sm"
+              placeholder="選擇專案開始時間"
+              type="date"
+              {...methods.register('startTime', {
+                required: '請選擇專案開始時間'
+              })}
+            />
+          </SwitchField>
         </FormItem>
         <FormItem
           label="專案結束時間"
           placeholder="請選擇專案結束時間"
           path="endTime"
         >
-          <Input
-            size="sm"
-            placeholder="選擇專案結束時間"
-            type="date"
-            {...methods.register('endTime', {
-              required: '請選擇專案結束時間'
-            })}
-          />
-        </FormItem>
-        <FormItem label="目標金額" path="target">
-          <NumberInput size="sm" className="w-full" min={0}>
-            <NumberInputField
-              {...methods.register('target', {
-                required: '請輸入目標金額',
-                valueAsNumber: true
+          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+            <Input
+              size="sm"
+              placeholder="選擇專案結束時間"
+              type="date"
+              {...methods.register('endTime', {
+                required: '請選擇專案結束時間'
               })}
             />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
+          </SwitchField>
+        </FormItem>
+        <FormItem label="目標金額" path="target">
+          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+            <NumberInput size="sm" className="w-full" min={0} defaultValue={0}>
+              <NumberInputField
+                {...methods.register('target', {
+                  required: '請輸入目標金額',
+                  valueAsNumber: true
+                })}
+              />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+          </SwitchField>
         </FormItem>
         <FormItem label="顯示預計目標金額" path="isShowTarget">
           <Switch size="sm" {...methods.register('isShowTarget')} />
         </FormItem>
         <FormItem label="專案網址" path="isShowTarget">
-          <Input size="sm"></Input>
+          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+            <Input size="sm"></Input>
+          </SwitchField>
         </FormItem>
         <FormItem label="庫存限量標示" path="isLimit">
           <Switch size="sm" {...methods.register('isLimit')} />
@@ -317,25 +398,42 @@ const BasicSettings = ({
         <FormItem label="是否啟用" path="isAbled">
           <Switch {...methods.register('isAbled')} size="sm" />
         </FormItem>
-        <div className="flex items-center justify-end gap-x-2 self-end">
-          <Button size="sm" variant="outline">
-            取消
-          </Button>
-          <Button
-            size="sm"
-            type="submit"
-            colorScheme="primary"
-            variant="outline"
-          >
-            儲存
-          </Button>
-        </div>
+        {isEdit && (
+          <div className="flex items-center justify-end gap-x-2 self-end">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setEdit(!isEdit);
+                methods.reset();
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              size="sm"
+              type="submit"
+              colorScheme="primary"
+              variant="outline"
+            >
+              儲存
+            </Button>
+          </div>
+        )}
       </Box>
     </FormProvider>
   );
 };
 
-const PaymentSettings = () => {
+const PaymentSettings = ({
+  isEdit,
+  isLoading,
+  setEdit
+}: {
+  isEdit?: boolean;
+  isLoading?: boolean;
+  setEdit: (arg: boolean) => void;
+}) => {
   const methods = useForm<Project.FormPaymentSettings>();
 
   const onSubmit = (data: Project.FormPaymentSettings) => {
@@ -373,14 +471,9 @@ const PaymentSettings = () => {
         <FormItem label="ATM 付款" path="atmDeadline">
           <Flex className="gap-x-2" alignItems="center">
             <Text>有限繳款期限: 贊助後第</Text>
-            <NumberInput
-              flexShrink={0}
-              size="sm"
-              maxW={10}
-              defaultValue={0}
-              min={0}
-            >
+            <NumberInput size="sm" maxW={10} defaultValue={5} min={0} max={15}>
               <NumberInputField
+                p={2}
                 {...methods.register('atmDeadline', {
                   valueAsNumber: true
                 })}
@@ -392,8 +485,9 @@ const PaymentSettings = () => {
         <FormItem label="超商付款" path="csDeadline">
           <Flex className="gap-x-2" alignItems="center">
             <Text>有限繳款期限: 贊助後第</Text>
-            <NumberInput size="sm" maxW={10} min={0} max={15}>
+            <NumberInput size="sm" maxW={10} defaultValue={5} min={0} max={15}>
               <NumberInputField
+                p={2}
                 {...methods.register('csDeadline', {
                   valueAsNumber: true
                 })}
@@ -402,19 +496,27 @@ const PaymentSettings = () => {
             <Text>天 23:59:59</Text>
           </Flex>
         </FormItem>
-        <div className="flex items-center justify-end gap-x-2 self-end">
-          <Button size="sm" variant="outline">
-            取消
-          </Button>
-          <Button
-            size="sm"
-            type="submit"
-            colorScheme="primary"
-            variant="outline"
-          >
-            儲存
-          </Button>
-        </div>
+        {isEdit && (
+          <div className="flex items-center justify-end gap-x-2 self-end">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setEdit(!isEdit);
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              size="sm"
+              type="submit"
+              colorScheme="primary"
+              variant="outline"
+            >
+              儲存
+            </Button>
+          </div>
+        )}
       </Box>
     </FormProvider>
   );
@@ -483,6 +585,10 @@ const ProjectSettings = () => {
   const router = useRouter();
   const toast = useToast();
 
+  const [visionEdit, setVisionEdit] = useState(false);
+  const [basicEdit, setBasicEdit] = useState(false);
+  const [payEdit, setPayEdit] = useState(false);
+
   const { id } = router.query;
 
   const { data, isLoading } = useSwr(
@@ -532,25 +638,29 @@ const ProjectSettings = () => {
         >
           <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>
             <SettingsBlock
-              renderHeader={
-                <Heading as="h3" fontSize="2xl">
-                  主視覺
-                </Heading>
-              }
+              title="主視覺"
               renderButton={
-                <Button size="sm" colorScheme="primary" variant="outline">
+                <Button
+                  size="sm"
+                  colorScheme="primary"
+                  variant="outline"
+                  display={{ base: visionEdit ? 'none' : '' }}
+                  onClick={() => {
+                    setVisionEdit(!visionEdit);
+                  }}
+                >
                   編輯設定
                 </Button>
               }
             >
-              <KeyVisionSettings />
+              <KeyVisionSettings
+                isEdit={visionEdit}
+                isLoading={isLoading}
+                setEdit={setVisionEdit}
+              />
             </SettingsBlock>
             <SettingsBlock
-              renderHeader={
-                <Heading as="h3" fontSize="2xl">
-                  專案預覽
-                </Heading>
-              }
+              title="專案預覽"
               renderButton={
                 <Button size="sm" colorScheme="primary" variant="outline">
                   更新預覽網址
@@ -559,44 +669,54 @@ const ProjectSettings = () => {
             >
               <ProjectPerView />
             </SettingsBlock>
-            <SettingsBlock
-              renderHeader={
-                <Heading as="h3" fontSize="2xl">
-                  專案資訊
-                </Heading>
-              }
-            >
+            <SettingsBlock title="專案資訊">
               <ProjectInfo />
             </SettingsBlock>
           </Flex>
           <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>
             <SettingsBlock
-              renderHeader={
-                <Heading as="h3" fontSize="2xl">
-                  基本設定
-                </Heading>
-              }
+              title="基本設定"
               renderButton={
-                <Button size="sm" colorScheme="primary" variant="outline">
+                <Button
+                  size="sm"
+                  colorScheme="primary"
+                  variant="outline"
+                  display={{ base: basicEdit ? 'none' : '' }}
+                  onClick={() => {
+                    setBasicEdit(!basicEdit);
+                  }}
+                >
                   編輯設定
                 </Button>
               }
             >
-              <BasicSettings></BasicSettings>
+              <BasicSettings
+                isEdit={basicEdit}
+                setEdit={setBasicEdit}
+                isLoading={isLoading}
+              ></BasicSettings>
             </SettingsBlock>
             <SettingsBlock
-              renderHeader={
-                <Heading as="h3" fontSize="2xl">
-                  付款設定
-                </Heading>
-              }
+              title="付款設定"
               renderButton={
-                <Button size="sm" colorScheme="primary" variant="outline">
+                <Button
+                  size="sm"
+                  colorScheme="primary"
+                  variant="outline"
+                  display={{ base: payEdit ? 'none' : '' }}
+                  onClick={() => {
+                    setPayEdit(!payEdit);
+                  }}
+                >
                   編輯設定
                 </Button>
               }
             >
-              <PaymentSettings></PaymentSettings>
+              <PaymentSettings
+                isEdit={payEdit}
+                isLoading={isLoading}
+                setEdit={setPayEdit}
+              ></PaymentSettings>
             </SettingsBlock>
           </Flex>
         </Flex>

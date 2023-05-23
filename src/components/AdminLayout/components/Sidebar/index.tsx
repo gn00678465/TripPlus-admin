@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { useRouter } from 'next/router';
+import NextLink from 'next/link';
 import {
   Flex,
   Button,
@@ -7,11 +8,14 @@ import {
   BoxProps,
   useMediaQuery,
   Avatar,
-  Text
+  Text,
+  Link,
+  Icon
 } from '@chakra-ui/react';
 import { SlGrid } from 'react-icons/sl';
 import { FaRegEdit } from 'react-icons/fa';
 import { AiOutlineFileText } from 'react-icons/ai';
+import { MdOutlineArrowBackIos } from 'react-icons/md';
 import { SidebarButton, SidebarButtonProps } from './components';
 
 interface SidebarProps extends BoxProps {}
@@ -47,12 +51,28 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
   return (
     <Box
       h="full"
+      pos="relative"
       display={{ base: 'block' }}
-      px={{ base: 3, sm: 5 }}
-      pt={{ base: 5, sm: 20 }}
-      pb={{ base: 5, sm: 10 }}
+      px={{ base: 3, sm: 5, lg: 5 }}
+      pt={{ base: 5, sm: 10, lg: 20 }}
+      pb={{ base: 5, sm: 10, lg: 20 }}
       {...rest}
     >
+      <Link
+        as={NextLink}
+        href="/admin/projects"
+        className="flex items-center gap-x-1"
+        color="primary.600"
+        fontWeight={500}
+        fontSize="sm"
+        display={{ base: 'block', md: 'none' }}
+        mx={3}
+        pt={2}
+        pb={5}
+        _hover={{ textDecoration: 'none' }}
+      >
+        <Icon as={MdOutlineArrowBackIos} /> 回專案列表
+      </Link>
       <Flex className="gap-y-5" h="full" flexDirection="column">
         <div className="flex justify-center sm:px-[115px]">
           <Image
@@ -77,7 +97,7 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
           </Text>
         </div>
         <Flex
-          flexDirection={{ base: 'row', sm: 'column' }}
+          flexDirection={{ base: 'row', md: 'column' }}
           justifyContent={{ base: 'space-between' }}
           className="sm:gap-y-2"
         >
@@ -92,16 +112,18 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
             </SidebarButton>
           ))}
         </Flex>
-        <Button
-          h="auto"
-          display={{ base: 'none', sm: 'block' }}
-          variant="outline"
-          colorScheme="primary"
-          mt={{ base: 0, sm: 'auto' }}
-          py={{ base: 3 }}
-        >
-          返回專案列表
-        </Button>
+        <NextLink href="/admin/projects" legacyBehavior passHref>
+          <Button
+            h="auto"
+            display={{ base: 'none', md: 'block' }}
+            variant="outline"
+            colorScheme="primary"
+            mt={{ base: 0, sm: 'auto' }}
+            py={{ base: 3 }}
+          >
+            返回專案列表
+          </Button>
+        </NextLink>
       </Flex>
     </Box>
   );

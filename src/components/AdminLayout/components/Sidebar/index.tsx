@@ -53,16 +53,16 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
       h="full"
       pos="relative"
       display={{ base: 'block' }}
-      px={{ base: 3, sm: 5, lg: 5 }}
-      pt={{ base: 5, sm: 10, lg: 20 }}
-      pb={{ base: 5, sm: 10, lg: 20 }}
+      px={{ base: 3, md: 5 }}
+      pt={{ base: 5, md: 20 }}
+      pb={{ base: 5, md: 10 }}
       {...rest}
     >
       <Link
         as={NextLink}
         href="/admin/projects"
         className="flex items-center gap-x-1"
-        color="primary.600"
+        color="secondary.500"
         fontWeight={500}
         fontSize="sm"
         display={{ base: 'block', md: 'none' }}
@@ -86,20 +86,21 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
         <div className="my-5 flex flex-col items-center justify-center gap-y-3 sm:my-10">
           <Avatar
             size="2xl"
-            className="outline outline-8 outline-offset-0 outline-secondary"
             name="王小明"
+            className="ring-8 ring-secondary-300 ring-offset-0"
           ></Avatar>
           <Text
             fontWeight={{ base: 400 }}
             fontSize={{ base: 'sm', sm: '16px' }}
+            color="gray.900"
           >
             王小明
           </Text>
         </div>
         <Flex
           flexDirection={{ base: 'row', md: 'column' }}
-          justifyContent={{ base: 'space-between' }}
-          className="sm:gap-y-2"
+          justifyContent={{ base: 'center' }}
+          className="gap-x-2 sm:gap-x-4 md:gap-y-2"
         >
           {menu.map((item) => (
             <SidebarButton
@@ -117,7 +118,7 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
             h="auto"
             display={{ base: 'none', md: 'block' }}
             variant="outline"
-            colorScheme="primary"
+            colorScheme="secondary"
             mt={{ base: 0, sm: 'auto' }}
             py={{ base: 3 }}
           >

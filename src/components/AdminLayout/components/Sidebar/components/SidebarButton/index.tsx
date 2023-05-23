@@ -20,6 +20,7 @@ export default function SidebarButton({
       href={_href}
       aria-current={isActive ? 'page' : undefined}
       h="auto"
+      w={28}
       fontSize={{ base: 'sm', sm: '16px' }}
       fontWeight={{ base: 500 }}
       py={{ base: 3, md: 5 }}
@@ -27,14 +28,14 @@ export default function SidebarButton({
       borderRadius={{ base: 4 }}
       backgroundColor="white"
       color="gray-500"
-      _hover={{ color: '#008E86', backgroundColor: 'secondary' }}
+      _hover={{ color: 'secondary.500', backgroundColor: 'secondary.300' }}
       _active={{
-        color: '#008E86',
-        backgroundColor: 'secondary'
+        color: 'secondary.500',
+        backgroundColor: 'secondary.300'
       }}
       _activeLink={{
-        color: '#008E86',
-        backgroundColor: 'secondary'
+        color: 'secondary.500',
+        backgroundColor: 'secondary.300'
       }}
     >
       <Flex
@@ -43,7 +44,7 @@ export default function SidebarButton({
         flexDirection={{ base: 'column', md: 'row' }}
         className="gap-y-3 md:gap-x-2 md:gap-y-0"
       >
-        <Icon as={icon} />
+        <Icon boxSize={{ base: 5, md: 6 }} as={icon} />
         {children}
       </Flex>
     </Link>

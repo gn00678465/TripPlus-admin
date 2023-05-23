@@ -1,5 +1,8 @@
 import ErrorBoundary from './ErrorBoundary';
 import ImageFallback from './ImageFallback';
+import BlankLayout from './BlankLayout';
 
 export * from './Chakra';
-export { ErrorBoundary, ImageFallback };
+export * from './Pagination';
+export * from './Table';
+export { ErrorBoundary, ImageFallback, BlankLayout };

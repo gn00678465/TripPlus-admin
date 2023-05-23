@@ -7,3 +7,4 @@ export * from './Pagination';
 export * from './Table';
 export { ErrorBoundary, ImageFallback, BlankLayout };
 export { default as AdminLayout } from './AdminLayout';
+export { default as Navbar } from './Navbar';

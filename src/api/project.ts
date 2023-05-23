@@ -17,3 +17,16 @@ export function apiFetchProjects(
     config
   );
 }
+
+export function apiFetchProjectInfo(id: string, config?: AxiosRequestConfig) {
+  return request.get<ApiProjectSettings.ProjectSettings>(
+    `/admin/project/${id}/info`,
+    config
+  );
+}
+
+export function apiProjInfoImage() {}
+
+export function apiProjInfoSetting() {}
+
+export function apiProjInfoPayment() {}

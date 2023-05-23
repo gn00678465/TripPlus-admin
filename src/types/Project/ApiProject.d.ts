@@ -34,3 +34,13 @@ declare namespace ApiProject {
     items: ProjectsItem[];
   }
 }
+
+declare namespace ApiProjectSettings {
+  interface ProjectSettings
+    extends ApiProject.ProjectReturn,
+      Project.FormBasicSettings {
+    isAbled: 0 | 1;
+    payment: string;
+    atmDeadline: string;
+  }
+}

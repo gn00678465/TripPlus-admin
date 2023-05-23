@@ -13,4 +13,24 @@ declare namespace ApiProject {
     updatedAt: string;
     __v: number;
   }
+
+  interface ProjectItem extends ProjectReturn {
+    status: 'draft' | 'progress' | 'complete';
+    type: 'project' | 'product';
+    countDownDays: number;
+    progressRate: number;
+    productId: string;
+    content: string;
+    teamId: {
+      _id: string;
+      title: string;
+    };
+  }
+
+  interface ProjectList {
+    total: number;
+    totalPages: number;
+    page: number;
+    items: ProjectsItem[];
+  }
 }

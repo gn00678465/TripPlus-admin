@@ -1,4 +1,4 @@
-import { ReactElement, useState, useMemo } from 'react';
+import { ReactElement, useState, useMemo, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import {
@@ -108,7 +108,10 @@ const FormItem = ({
   } = useFormContext();
   return (
     <FormControl flexShrink={0} isInvalid={!!errors[path]} {...rest}>
-      <Box display={{ base: 'block', sm: 'flex', md: 'block', '2xl': 'flex' }}>
+      <Box
+        display={{ base: 'block', sm: 'flex', md: 'block', '2xl': 'flex' }}
+        alignItems="center"
+      >
         <FormLabel
           mb={{ base: 2, '2xl': 0 }}
           flexShrink={0}
@@ -257,13 +260,31 @@ const KeyVisionSettings = ({
 const BasicSettings = ({
   isEdit,
   isLoading,
-  setEdit
+  setEdit,
+  projectData
 }: {
   isEdit?: boolean;
   isLoading?: boolean;
   setEdit: (arg: boolean) => void;
+  projectData?: ApiProjectSettings.ProjectSettings;
 }) => {
-  const methods = useForm<Project.FormBasicSettings>({});
+  const methods = useForm<Project.FormBasicSettings>({
+    defaultValues: useMemo(() => {
+      return {
+        title: projectData?.title,
+        summary: projectData?.summary,
+        startTime: projectData?.startTime
+      };
+    }, [projectData])
+  });
+
+  useEffect(() => {
+    methods.reset({
+      title: projectData?.title,
+      summary: projectData?.summary,
+      startTime: projectData?.startTime
+    });
+  }, [methods, projectData]);
 
   const onSubmit = (data: Project.FormBasicSettings) => {
     console.log(data);
@@ -288,11 +309,15 @@ const BasicSettings = ({
     <FormProvider {...methods}>
       <Box
         as="form"
-        className="flex flex-col items-start gap-y-2"
+        className="flex flex-col items-start gap-y-3"
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <FormItem label="專案名稱" placeholder="請填入專案名稱" path="title">
-          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+          <SwitchField
+            text={methods.getValues('title')}
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
             <Input
               size="sm"
               {...methods.register('title', {
@@ -321,7 +346,11 @@ const BasicSettings = ({
           </SwitchField>
         </FormItem>
         <FormItem label="專案摘要" placeholder="請填入專案摘要" path="summary">
-          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+          <SwitchField
+            text={methods.getValues('summary')}
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
             <Input
               size="sm"
               {...methods.register('summary', {
@@ -335,7 +364,11 @@ const BasicSettings = ({
           placeholder="請選擇專案開始時間"
           path="startTime"
         >
-          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+          <SwitchField
+            text={methods.getValues('startTime')}
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
             <Input
               size="sm"
               placeholder="選擇專案開始時間"
@@ -459,7 +492,7 @@ const PaymentSettings = ({
     <FormProvider {...methods}>
       <Box
         as="form"
-        className="flex flex-col items-start gap-y-2"
+        className="flex flex-col items-start gap-y-3"
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <FormItem label="付款方式" path="payment">
@@ -569,7 +602,7 @@ const TPListItem = ({
 
 const ProjectPerView = () => {
   return (
-    <List className="flex flex-col items-start gap-y-2">
+    <List className="flex flex-col items-start gap-y-3">
       <TPListItem label="預覽連結">
         <Link w="full">xxxxx</Link>
       </TPListItem>
@@ -579,7 +612,7 @@ const ProjectPerView = () => {
 
 const ProjectInfo = () => {
   return (
-    <List className="flex flex-col items-start gap-y-2">
+    <List className="flex flex-col items-start gap-y-3">
       <TPListItem label="訂單總數">
         <Text w="full">3</Text>
       </TPListItem>
@@ -613,14 +646,16 @@ const ProjectSettings = () => {
     id ? `/admin/project/${id}/info` : null,
     async () => {
       const [err, res] = await safeAwait(apiFetchProjectInfo(id as string));
-      return new Promise((resolve, reject) => {
-        if (res) {
-          resolve(res);
+      return new Promise<ApiProjectSettings.ProjectSettings>(
+        (resolve, reject) => {
+          if (res && res.status === 'Success') {
+            resolve(res.data);
+          }
+          if (err) {
+            reject(err);
+          }
         }
-        if (err) {
-          reject(err);
-        }
-      });
+      );
     },
     {
       onError(err, key, config) {
@@ -699,6 +734,7 @@ const ProjectSettings = () => {
             isEdit={basicEdit}
             setEdit={setBasicEdit}
             isLoading={isLoading}
+            projectData={data}
           ></BasicSettings>
         </SettingsBlock>
         <SettingsBlock

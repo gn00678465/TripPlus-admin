@@ -33,7 +33,7 @@ import {
   Skeleton
 } from '@chakra-ui/react';
 import type { BoxProps } from '@chakra-ui/react';
-import { AdminLayout, Navbar, ImageFallback } from '@/components';
+import { AdminLayout, ProjectWrap, ImageFallback } from '@/components';
 import useSwr from 'swr';
 import { apiFetchProjectInfo } from '@/api';
 import { safeAwait } from '@/utils';
@@ -618,110 +618,95 @@ const ProjectSettings = () => {
   );
 
   return (
-    <>
-      <Head>
-        <title>專案管理</title>
-      </Head>
-      <Box
-        px={{ base: 3, md: 10, lg: 20 }}
-        pt={{ base: 10, lg: 20 }}
-        pb={{ base: 3 }}
-      >
-        <Heading as="h2" size="xl" mb={{ base: 5, lg: 10 }} noOfLines={1}>
-          專案管理
-        </Heading>
-        <Navbar></Navbar>
-        <Flex
-          w="full"
-          flexDirection={{ base: 'column', lg: 'row' }}
-          gap={{ base: 5 }}
+    <Flex
+      w="full"
+      flexDirection={{ base: 'column', lg: 'row' }}
+      gap={{ base: 5 }}
+    >
+      <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>
+        <SettingsBlock
+          title="主視覺"
+          renderButton={
+            <Button
+              size="sm"
+              colorScheme="primary"
+              variant="outline"
+              display={{ base: visionEdit ? 'none' : '' }}
+              onClick={() => {
+                setVisionEdit(!visionEdit);
+              }}
+            >
+              編輯設定
+            </Button>
+          }
         >
-          <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>
-            <SettingsBlock
-              title="主視覺"
-              renderButton={
-                <Button
-                  size="sm"
-                  colorScheme="primary"
-                  variant="outline"
-                  display={{ base: visionEdit ? 'none' : '' }}
-                  onClick={() => {
-                    setVisionEdit(!visionEdit);
-                  }}
-                >
-                  編輯設定
-                </Button>
-              }
+          <KeyVisionSettings
+            isEdit={visionEdit}
+            isLoading={isLoading}
+            setEdit={setVisionEdit}
+          />
+        </SettingsBlock>
+        <SettingsBlock
+          title="專案預覽"
+          renderButton={
+            <Button size="sm" colorScheme="primary" variant="outline">
+              更新預覽網址
+            </Button>
+          }
+        >
+          <ProjectPerView />
+        </SettingsBlock>
+        <SettingsBlock title="專案資訊">
+          <ProjectInfo />
+        </SettingsBlock>
+      </Flex>
+      <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>
+        <SettingsBlock
+          title="基本設定"
+          renderButton={
+            <Button
+              size="sm"
+              colorScheme="primary"
+              variant="outline"
+              display={{ base: basicEdit ? 'none' : '' }}
+              onClick={() => {
+                setBasicEdit(!basicEdit);
+              }}
             >
-              <KeyVisionSettings
-                isEdit={visionEdit}
-                isLoading={isLoading}
-                setEdit={setVisionEdit}
-              />
-            </SettingsBlock>
-            <SettingsBlock
-              title="專案預覽"
-              renderButton={
-                <Button size="sm" colorScheme="primary" variant="outline">
-                  更新預覽網址
-                </Button>
-              }
+              編輯設定
+            </Button>
+          }
+        >
+          <BasicSettings
+            isEdit={basicEdit}
+            setEdit={setBasicEdit}
+            isLoading={isLoading}
+          ></BasicSettings>
+        </SettingsBlock>
+        <SettingsBlock
+          title="付款設定"
+          renderButton={
+            <Button
+              size="sm"
+              colorScheme="primary"
+              variant="outline"
+              display={{ base: payEdit ? 'none' : '' }}
+              onClick={() => {
+                setPayEdit(!payEdit);
+              }}
             >
-              <ProjectPerView />
-            </SettingsBlock>
-            <SettingsBlock title="專案資訊">
-              <ProjectInfo />
-            </SettingsBlock>
-          </Flex>
-          <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>
-            <SettingsBlock
-              title="基本設定"
-              renderButton={
-                <Button
-                  size="sm"
-                  colorScheme="primary"
-                  variant="outline"
-                  display={{ base: basicEdit ? 'none' : '' }}
-                  onClick={() => {
-                    setBasicEdit(!basicEdit);
-                  }}
-                >
-                  編輯設定
-                </Button>
-              }
-            >
-              <BasicSettings
-                isEdit={basicEdit}
-                setEdit={setBasicEdit}
-                isLoading={isLoading}
-              ></BasicSettings>
-            </SettingsBlock>
-            <SettingsBlock
-              title="付款設定"
-              renderButton={
-                <Button
-                  size="sm"
-                  colorScheme="primary"
-                  variant="outline"
-                  display={{ base: payEdit ? 'none' : '' }}
-                  onClick={() => {
-                    setPayEdit(!payEdit);
-                  }}
-                >
-                  編輯設定
-                </Button>
-              }
-            >
-              <PaymentSettings
-                isEdit={payEdit}
-                isLoading={isLoading}
-                setEdit={setPayEdit}
-              ></PaymentSettings>
-            </SettingsBlock>
-          </Flex>
-        </Flex>
-      </Box>
-    </>
+              編輯設定
+            </Button>
+          }
+        >
+          <PaymentSettings
+            isEdit={payEdit}
+            isLoading={isLoading}
+            setEdit={setPayEdit}
+          ></PaymentSettings>
+        </SettingsBlock>
+      </Flex>
+    </Flex>
   );
 };
 
@@ -730,7 +715,10 @@ export default ProjectSettings;
 ProjectSettings.getLayout = function (page: ReactElement) {
   return (
     <AdminLayout>
-      <Box className="h-full bg-gray-200">{page}</Box>
+      <Head>
+        <title>專案管理</title>
+      </Head>
+      <ProjectWrap className="h-full bg-gray-200">{page}</ProjectWrap>
     </AdminLayout>
   );
 };

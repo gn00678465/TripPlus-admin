@@ -74,7 +74,7 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
         <Icon as={MdOutlineArrowBackIos} /> 回專案列表
       </Link>
       <Flex className="gap-y-5" h="full" flexDirection="column">
-        <div className="flex justify-center sm:px-[115px]">
+        <div className="flex justify-center sm:px-[93px]">
           <Image
             src="/images/logo.png"
             width={isLargerSM ? 172 : 129}

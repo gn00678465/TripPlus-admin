@@ -13,7 +13,7 @@ const AdminLayout: FC<LayoutProps> = ({ children }) => {
         pos={{ base: 'relative', md: 'fixed' }}
         w={{ base: 'full', md: 'auto' }}
       ></Sidebar>
-      <Box ml={{ base: 0, md: 442 }}>{children}</Box>
+      <Box ml={{ base: 0, md: 398 }}>{children}</Box>
     </Box>
   );
 };

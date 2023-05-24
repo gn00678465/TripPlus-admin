@@ -62,10 +62,16 @@ const SettingsBlock = ({
   ...rest
 }: SettingsBlockProps) => {
   return (
-    <Box backgroundColor="white" {...rest}>
+    <Box
+      className="rounded-lg"
+      px={{ base: 3, md: 6 }}
+      pt={{ base: 4, md: 6 }}
+      pb={{ base: 6, md: 12 }}
+      backgroundColor="white"
+      {...rest}
+    >
       <Flex
-        px={{ base: 2 }}
-        py={{ base: 3 }}
+        mb={{ base: 6, md: 12 }}
         justifyContent="space-between"
         alignItems="center"
       >
@@ -74,7 +80,7 @@ const SettingsBlock = ({
         </Heading>
         {renderButton}
       </Flex>
-      <Divider orientation="horizontal" />
+      {/* <Divider orientation="horizontal" /> */}
       {children}
     </Box>
   );
@@ -101,20 +107,17 @@ const FormItem = ({
     formState: { errors }
   } = useFormContext();
   return (
-    <FormControl
-      display={{ base: 'block', xs: 'flex', md: 'block', '2xl': 'flex' }}
-      flexShrink={0}
-      isInvalid={!!errors[path]}
-      {...rest}
-    >
-      <FormLabel
-        mb={{ base: 2, '2xl': 0 }}
-        flexShrink={0}
-        flexBasis={{ base: 'auto', xs: '125px', md: 'auto', '2xl': '125px' }}
-      >
-        {label}
-      </FormLabel>
-      {children}
+    <FormControl flexShrink={0} isInvalid={!!errors[path]} {...rest}>
+      <Box display={{ base: 'block', sm: 'flex', md: 'block', '2xl': 'flex' }}>
+        <FormLabel
+          mb={{ base: 2, '2xl': 0 }}
+          flexShrink={0}
+          flexBasis={{ base: 'auto', sm: '125px', md: 'auto', '2xl': '125px' }}
+        >
+          {label}
+        </FormLabel>
+        <div className="grow">{children}</div>
+      </Box>
       {showFeedback && !!errors[path] && (
         <FormErrorMessage className="visible">
           {errors[path]?.message as string}
@@ -189,7 +192,7 @@ const KeyVisionSettings = ({
       <Box
         as="form"
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col items-start gap-y-2 p-2"
+        className="flex flex-col items-start gap-y-2"
       >
         <FormControl>
           <p className="flex w-full items-center justify-end gap-x-4 py-2">
@@ -285,7 +288,7 @@ const BasicSettings = ({
     <FormProvider {...methods}>
       <Box
         as="form"
-        className="flex flex-col items-start gap-y-2 p-2"
+        className="flex flex-col items-start gap-y-2"
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <FormItem label="專案名稱" placeholder="請填入專案名稱" path="title">
@@ -376,7 +379,11 @@ const BasicSettings = ({
           </SwitchField>
         </FormItem>
         <FormItem label="顯示預計目標金額" path="isShowTarget">
-          <Switch size="sm" {...methods.register('isShowTarget')} />
+          <Switch
+            colorScheme="primary"
+            size="sm"
+            {...methods.register('isShowTarget')}
+          />
         </FormItem>
         <FormItem label="專案網址" path="isShowTarget">
           <SwitchField isEdit={isEdit} isLoading={isLoading}>
@@ -384,7 +391,11 @@ const BasicSettings = ({
           </SwitchField>
         </FormItem>
         <FormItem label="庫存限量標示" path="isLimit">
-          <Switch size="sm" {...methods.register('isLimit')} />
+          <Switch
+            colorScheme="primary"
+            size="sm"
+            {...methods.register('isLimit')}
+          />
         </FormItem>
         <Divider />
         <FormItem label="SEO描述(限 100 字內)" path="seoDescription">
@@ -396,7 +407,11 @@ const BasicSettings = ({
         </FormItem>
         <Divider />
         <FormItem label="是否啟用" path="isAbled">
-          <Switch {...methods.register('isAbled')} size="sm" />
+          <Switch
+            colorScheme="primary"
+            size="sm"
+            {...methods.register('isAbled')}
+          />
         </FormItem>
         {isEdit && (
           <div className="flex items-center justify-end gap-x-2 self-end">
@@ -444,7 +459,7 @@ const PaymentSettings = ({
     <FormProvider {...methods}>
       <Box
         as="form"
-        className="flex flex-col items-start gap-y-2 p-2"
+        className="flex flex-col items-start gap-y-2"
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <FormItem label="付款方式" path="payment">
@@ -452,7 +467,7 @@ const PaymentSettings = ({
             name="payment"
             control={methods.control}
             render={() => (
-              <RadioGroup>
+              <RadioGroup colorScheme="primary">
                 <Radio value="1" mr={2}>
                   只使用信用卡付款
                 </Radio>
@@ -464,7 +479,10 @@ const PaymentSettings = ({
           ></Controller>
         </FormItem>
         <FormItem label="信用卡付款" path="isAllowInstallment">
-          <Checkbox {...methods.register('isAllowInstallment')}>
+          <Checkbox
+            colorScheme="primary"
+            {...methods.register('isAllowInstallment')}
+          >
             開啟信用卡分期
           </Checkbox>
         </FormItem>
@@ -551,7 +569,7 @@ const TPListItem = ({
 
 const ProjectPerView = () => {
   return (
-    <List className="flex flex-col items-start gap-y-2 p-2">
+    <List className="flex flex-col items-start gap-y-2">
       <TPListItem label="預覽連結">
         <Link w="full">xxxxx</Link>
       </TPListItem>
@@ -561,7 +579,7 @@ const ProjectPerView = () => {
 
 const ProjectInfo = () => {
   return (
-    <List className="flex flex-col items-start gap-y-2 p-2">
+    <List className="flex flex-col items-start gap-y-2">
       <TPListItem label="訂單總數">
         <Text w="full">3</Text>
       </TPListItem>
@@ -718,7 +736,7 @@ ProjectSettings.getLayout = function (page: ReactElement) {
       <Head>
         <title>專案管理</title>
       </Head>
-      <ProjectWrap className="h-full bg-gray-200">{page}</ProjectWrap>
+      <ProjectWrap className="h-full bg-gray-100">{page}</ProjectWrap>
     </AdminLayout>
   );
 };

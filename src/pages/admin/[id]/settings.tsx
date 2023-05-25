@@ -36,7 +36,7 @@ import type { BoxProps } from '@chakra-ui/react';
 import { AdminLayout, ProjectWrap, ImageFallback } from '@/components';
 import useSwr from 'swr';
 import { apiFetchProjectInfo } from '@/api';
-import { safeAwait } from '@/utils';
+import { safeAwait, currencyTWD } from '@/utils';
 import {
   useForm,
   UseFormReturn,
@@ -115,7 +115,7 @@ const FormItem = ({
         <FormLabel
           mb={{ base: 2, '2xl': 0 }}
           flexShrink={0}
-          flexBasis={{ base: 'auto', sm: '125px', md: 'auto', '2xl': '125px' }}
+          flexBasis={{ base: 'auto', sm: '125px', md: 'auto', '2xl': '130px' }}
         >
           {label}
         </FormLabel>
@@ -132,7 +132,7 @@ const FormItem = ({
 
 const SwitchField = ({
   children,
-  text = '',
+  text = '-',
   isEdit = false,
   isLoading = false
 }: {
@@ -153,29 +153,32 @@ const SwitchField = ({
           fontSize="20px"
           lineHeight="32px"
         >
-          {text ? text : 'invisible'}
+          {text}
         </Text>
       )}
     </Skeleton>
   );
 };
 
+interface SettingsProps {
+  isEdit?: boolean;
+  isLoading?: boolean;
+  setEdit?: (arg: boolean) => void;
+  projectData?: ApiProjectSettings.ProjectSettings;
+}
+
 const KeyVisionSettings = ({
   isEdit,
   isLoading,
-  setEdit
-}: {
-  isEdit?: boolean;
-  isLoading?: boolean;
-  setEdit: (arg: boolean) => void;
-}) => {
-  const { handleSubmit, register, ...rest } =
-    useForm<Project.FormKeyVisionSettings>();
+  setEdit,
+  projectData
+}: SettingsProps) => {
+  const methods = useForm<Project.FormKeyVisionSettings>();
   const [file, setFile] = useState<undefined | File>();
 
   function onClickCancel() {
-    setEdit(!isEdit);
-    rest.reset();
+    setEdit?.(!isEdit);
+    methods.reset();
     setFile(undefined);
   }
 
@@ -183,18 +186,27 @@ const KeyVisionSettings = ({
 
   const image = useMemo(() => {
     if (dataURL) return dataURL;
+    if (projectData?.keyVision) return projectData.keyVision;
     return NoImage.src;
-  }, [dataURL]);
+  }, [dataURL, projectData]);
 
   const onSubmit = (data: Project.FormKeyVisionSettings) => {
     console.log(data);
   };
 
+  useEffect(() => {
+    if (projectData) {
+      methods.reset({
+        video: projectData.video
+      });
+    }
+  }, [methods, projectData]);
+
   return (
-    <FormProvider handleSubmit={handleSubmit} register={register} {...rest}>
+    <FormProvider {...methods}>
       <Box
         as="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={methods.handleSubmit(onSubmit)}
         className="flex flex-col items-start gap-y-2"
       >
         <FormControl>
@@ -202,39 +214,45 @@ const KeyVisionSettings = ({
             <Icon boxSize={6} as={MdCameraEnhance} />
             <span className="font-semibold text-gray-500">上傳專案圖片</span>
           </p>
-          <FormLabel
-            mx="0"
-            p="0"
-            className="relative aspect-[10/7] w-full"
-            cursor={isEdit ? 'pointer' : 'auto'}
-          >
-            <ImageFallback
-              src={image}
-              fallbackSrc={NoImage.src}
-              alt="專案圖片"
-              fill
-              priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
-              style={{
-                objectFit: 'cover',
-                objectPosition: 'center'
-              }}
-            ></ImageFallback>
-            <Input
-              className="hidden"
-              variant="unstyled"
-              type="file"
-              accept="image/*"
-              disabled={!isEdit}
-              onChange={(e) => {
-                setFile(e.target.files?.[0]);
-              }}
-            ></Input>
-          </FormLabel>
+          <Skeleton isLoaded={!isLoading}>
+            <FormLabel
+              mx="0"
+              p="0"
+              className="relative aspect-[10/7] w-full"
+              cursor={isEdit ? 'pointer' : 'auto'}
+            >
+              <ImageFallback
+                src={image}
+                fallbackSrc={NoImage.src}
+                alt="專案圖片"
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: 'center'
+                }}
+              ></ImageFallback>
+              <Input
+                className="hidden"
+                variant="unstyled"
+                type="file"
+                accept="image/*"
+                disabled={!isEdit}
+                onChange={(e) => {
+                  setFile(e.target.files?.[0]);
+                }}
+              ></Input>
+            </FormLabel>
+          </Skeleton>
         </FormControl>
         <FormItem label="集資影片" placeholder="請填入集資影片" path="video">
-          <SwitchField text="text" isEdit={isEdit} isLoading={isLoading}>
-            <Input size="sm" {...register('video')}></Input>
+          <SwitchField
+            text={methods.getValues('video')}
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
+            <Input size="sm" {...methods.register('video')}></Input>
           </SwitchField>
         </FormItem>
         {isEdit && (
@@ -262,28 +280,24 @@ const BasicSettings = ({
   isLoading,
   setEdit,
   projectData
-}: {
-  isEdit?: boolean;
-  isLoading?: boolean;
-  setEdit: (arg: boolean) => void;
-  projectData?: ApiProjectSettings.ProjectSettings;
-}) => {
-  const methods = useForm<Project.FormBasicSettings>({
-    defaultValues: useMemo(() => {
-      return {
-        title: projectData?.title,
-        summary: projectData?.summary,
-        startTime: projectData?.startTime
-      };
-    }, [projectData])
-  });
+}: SettingsProps) => {
+  const methods = useForm<Project.FormBasicSettings>();
 
   useEffect(() => {
-    methods.reset({
-      title: projectData?.title,
-      summary: projectData?.summary,
-      startTime: projectData?.startTime
-    });
+    if (projectData) {
+      methods.reset({
+        title: projectData.title,
+        summary: projectData.summary,
+        startTime: projectData.startTime,
+        endTime: projectData.endTime,
+        target: projectData.target,
+        url: projectData.url,
+        isLimit: projectData.isLimit,
+        isShowTarget: projectData.isShowTarget,
+        category: projectData.category,
+        seoDescription: projectData.seoDescription
+      });
+    }
   }, [methods, projectData]);
 
   const onSubmit = (data: Project.FormBasicSettings) => {
@@ -384,7 +398,11 @@ const BasicSettings = ({
           placeholder="請選擇專案結束時間"
           path="endTime"
         >
-          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+          <SwitchField
+            text={methods.getValues('endTime')}
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
             <Input
               size="sm"
               placeholder="選擇專案結束時間"
@@ -396,7 +414,11 @@ const BasicSettings = ({
           </SwitchField>
         </FormItem>
         <FormItem label="目標金額" path="target">
-          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+          <SwitchField
+            text={currencyTWD(methods.getValues('target'))}
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
             <NumberInput size="sm" className="w-full" min={0} defaultValue={0}>
               <NumberInputField
                 {...methods.register('target', {
@@ -419,8 +441,12 @@ const BasicSettings = ({
           />
         </FormItem>
         <FormItem label="專案網址" path="isShowTarget">
-          <SwitchField isEdit={isEdit} isLoading={isLoading}>
-            <Input size="sm"></Input>
+          <SwitchField
+            text={methods.getValues('url')}
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
+            <Input size="sm" {...methods.register('url')}></Input>
           </SwitchField>
         </FormItem>
         <FormItem label="庫存限量標示" path="isLimit">
@@ -432,27 +458,34 @@ const BasicSettings = ({
         </FormItem>
         <Divider />
         <FormItem label="SEO描述(限 100 字內)" path="seoDescription">
-          <Textarea
-            size="sm"
-            maxLength={100}
-            placeholder="請填入SEO描述"
-          ></Textarea>
+          <SwitchField
+            text={methods.getValues('seoDescription')}
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
+            <Textarea
+              size="sm"
+              maxLength={100}
+              placeholder="請填入SEO描述"
+              {...methods.register('seoDescription')}
+            ></Textarea>
+          </SwitchField>
         </FormItem>
-        <Divider />
-        <FormItem label="是否啟用" path="isAbled">
+        {/* <Divider /> */}
+        {/* <FormItem label="是否啟用" path="isAbled">
           <Switch
             colorScheme="primary"
             size="sm"
             {...methods.register('isAbled')}
           />
-        </FormItem>
+        </FormItem> */}
         {isEdit && (
           <div className="flex items-center justify-end gap-x-2 self-end">
             <Button
               size="sm"
               variant="outline"
               onClick={() => {
-                setEdit(!isEdit);
+                setEdit?.(!isEdit);
                 methods.reset();
               }}
             >
@@ -473,15 +506,7 @@ const BasicSettings = ({
   );
 };
 
-const PaymentSettings = ({
-  isEdit,
-  isLoading,
-  setEdit
-}: {
-  isEdit?: boolean;
-  isLoading?: boolean;
-  setEdit: (arg: boolean) => void;
-}) => {
+const PaymentSettings = ({ isEdit, isLoading, setEdit }: SettingsProps) => {
   const methods = useForm<Project.FormPaymentSettings>();
 
   const onSubmit = (data: Project.FormPaymentSettings) => {
@@ -553,7 +578,7 @@ const PaymentSettings = ({
               size="sm"
               variant="outline"
               onClick={() => {
-                setEdit(!isEdit);
+                setEdit?.(!isEdit);
               }}
             >
               取消
@@ -575,58 +600,64 @@ const PaymentSettings = ({
 
 const TPListItem = ({
   label,
-  children
+  children,
+  isLoading
 }: {
   label: string;
-  children: JSX.Element;
+  children?: JSX.Element | string | number;
+  isLoading?: boolean;
 }) => {
   return (
-    <ListItem>
-      <div className="block items-center xs:flex md:block 2xl:flex">
+    <ListItem py={1}>
+      <div className="block w-full items-center xs:flex md:block 2xl:flex">
         <Text
           flexShrink={0}
           w={{
             base: 'auto',
             xs: '125px',
             md: 'auto',
-            '2xl': '125px'
+            '2xl': '130px'
           }}
         >
           {label}
         </Text>
-        {children}
+        <Skeleton flexGrow={1} isLoaded={!isLoading}>
+          <Text>{children}</Text>
+        </Skeleton>
       </div>
     </ListItem>
   );
 };
 
-const ProjectPerView = () => {
+const ProjectPerView = ({ isLoading, projectData }: SettingsProps) => {
   return (
     <List className="flex flex-col items-start gap-y-3">
-      <TPListItem label="預覽連結">
-        <Link w="full">xxxxx</Link>
+      <TPListItem isLoading={isLoading} label="預覽連結">
+        {projectData?.url}
       </TPListItem>
     </List>
   );
 };
 
-const ProjectInfo = () => {
+const ProjectInfo = ({ isLoading, projectData }: SettingsProps) => {
   return (
-    <List className="flex flex-col items-start gap-y-3">
-      <TPListItem label="訂單總數">
-        <Text w="full">3</Text>
+    <List>
+      <TPListItem isLoading={isLoading} label="訂單總數">
+        {projectData?.orderCount || '-'}
       </TPListItem>
-      <TPListItem label="交易成功人數">
-        <Text w="full">3</Text>
+      <TPListItem isLoading={isLoading} label="交易成功人數">
+        {projectData?.orderSuccess || '-'}
       </TPListItem>
-      <TPListItem label="待繳款金額/人數">
-        <Text w="full">NT$0/0</Text>
+      <TPListItem isLoading={isLoading} label="待繳款金額/人數">
+        {`NT${currencyTWD(projectData?.orderUnpaidAmount || 0)} / ${
+          projectData?.orderUnpaidCount
+        }`}
       </TPListItem>
-      <TPListItem label="集資進度">
-        <Text w="full">1.00%</Text>
+      <TPListItem isLoading={isLoading} label="集資進度">
+        {`${projectData?.progressRate ? projectData.progressRate : 0}%`}
       </TPListItem>
-      <TPListItem label="專案連結">
-        <Link w="full">xxxxx</Link>
+      <TPListItem isLoading={isLoading} label="專案連結">
+        {projectData?.url}
       </TPListItem>
     </List>
   );
@@ -697,6 +728,7 @@ const ProjectSettings = () => {
             isEdit={visionEdit}
             isLoading={isLoading}
             setEdit={setVisionEdit}
+            projectData={data}
           />
         </SettingsBlock>
         <SettingsBlock
@@ -707,10 +739,10 @@ const ProjectSettings = () => {
             </Button>
           }
         >
-          <ProjectPerView />
+          <ProjectPerView isLoading={isLoading} projectData={data} />
         </SettingsBlock>
         <SettingsBlock title="專案資訊">
-          <ProjectInfo />
+          <ProjectInfo isLoading={isLoading} projectData={data} />
         </SettingsBlock>
       </Flex>
       <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>

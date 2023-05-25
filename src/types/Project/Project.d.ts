@@ -29,4 +29,8 @@ declare namespace Project {
     atmDeadline: string;
     csDeadline: string;
   }
+
+  interface FormOptionSettings {
+    isAbled: 0 | 1;
+  }
 }

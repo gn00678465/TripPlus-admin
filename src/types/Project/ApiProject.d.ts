@@ -40,8 +40,8 @@ declare namespace ApiProjectSettings {
     extends ApiProject.ProjectReturn,
       Project.FormBasicSettings,
       Project.FormKeyVisionSettings,
-      Project.FormPaymentSettings {
-    isAbled: 0 | 1;
+      Project.FormPaymentSettings,
+      Project.FormOptionSettings {
     orderCount: number;
     orderSuccess: number;
     orderUnpaidAmount: number;

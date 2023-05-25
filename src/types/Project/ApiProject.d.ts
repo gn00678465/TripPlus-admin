@@ -4,10 +4,10 @@ declare namespace ApiProject {
     teamId: string;
     sum: number;
     sponsorCount: number;
-    isShowTarget: 1;
-    isLimit: number;
-    isAbled: number;
-    isCommercialized: number;
+    isShowTarget: 0 | 1;
+    isLimit: 0 | 1;
+    isAbled: 0 | 1;
+    isCommercialized: 0 | 1;
     _id: string;
     createdAt: string;
     updatedAt: string;
@@ -15,8 +15,8 @@ declare namespace ApiProject {
   }
 
   interface ProjectItem extends ProjectReturn {
-    status: 'draft' | 'progress' | 'complete';
-    type: 'project' | 'product';
+    status: Common.Status;
+    type: Common.Type;
     countDownDays: number;
     progressRate: number;
     productId: string;
@@ -38,9 +38,17 @@ declare namespace ApiProject {
 declare namespace ApiProjectSettings {
   interface ProjectSettings
     extends ApiProject.ProjectReturn,
-      Project.FormBasicSettings {
+      Project.FormBasicSettings,
+      Project.FormKeyVisionSettings,
+      Project.FormPaymentSettings {
     isAbled: 0 | 1;
-    payment: string;
-    atmDeadline: string;
+    orderCount: number;
+    orderSuccess: number;
+    orderUnpaidAmount: number;
+    orderUnpaidCount: number;
+    progressRate: number;
+    countDownDays: number;
+    status: Common.Status;
+    type: Common.Type;
   }
 }

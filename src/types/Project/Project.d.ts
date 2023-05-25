@@ -10,7 +10,7 @@ declare namespace Project {
   }
 
   interface FormKeyVisionSettings {
-    KeyVision: string;
+    keyVision: string;
     video: string;
   }
 
@@ -18,15 +18,15 @@ declare namespace Project {
     extends Omit<Project.FormInputs, 'teamName' | 'keyVision'> {
     summary: string;
     isLimit: 0 | 1;
-    isAbled: 0 | 1;
     isShowTarget: 0 | 1;
     seoDescription: string;
+    url: string;
   }
 
   interface FormPaymentSettings {
-    payment: number;
+    payment: 0 | 1;
     isAllowInstallment: number;
-    atmDeadline: number;
-    csDeadline: number;
+    atmDeadline: string;
+    csDeadline: string;
   }
 }

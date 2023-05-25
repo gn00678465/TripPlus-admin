@@ -30,7 +30,8 @@ import {
   List,
   ListItem,
   Link,
-  Skeleton
+  Skeleton,
+  Center
 } from '@chakra-ui/react';
 import type { BoxProps } from '@chakra-ui/react';
 import { AdminLayout, ProjectWrap, ImageFallback } from '@/components';
@@ -46,8 +47,11 @@ import {
 } from 'react-hook-form';
 import { MdCameraEnhance } from 'react-icons/md';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import NoImage from '@/assets/images/no-image.png';
 import { useFileReader } from '@/hooks';
+
+dayjs.extend(utc);
 
 interface SettingsBlockProps extends Omit<BoxProps, 'children'> {
   title: string;
@@ -92,7 +96,8 @@ interface FormItem extends Omit<FormControlProps, 'children'> {
   path:
     | keyof Project.FormBasicSettings
     | keyof Project.FormPaymentSettings
-    | keyof Project.FormKeyVisionSettings;
+    | keyof Project.FormKeyVisionSettings
+    | keyof Project.FormOptionSettings;
   showFeedback?: boolean;
 }
 
@@ -341,7 +346,15 @@ const BasicSettings = ({
           </SwitchField>
         </FormItem>
         <FormItem label="專案類型" path="title">
-          <SwitchField isEdit={isEdit} isLoading={isLoading}>
+          <SwitchField
+            text={
+              categoryOptions.find(
+                (item) => item.value === methods.getValues('category')
+              )?.label
+            }
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
             <Select
               size="sm"
               placeholder="選擇專案類型"
@@ -471,14 +484,6 @@ const BasicSettings = ({
             ></Textarea>
           </SwitchField>
         </FormItem>
-        {/* <Divider /> */}
-        {/* <FormItem label="是否啟用" path="isAbled">
-          <Switch
-            colorScheme="primary"
-            size="sm"
-            {...methods.register('isAbled')}
-          />
-        </FormItem> */}
         {isEdit && (
           <div className="flex items-center justify-end gap-x-2 self-end">
             <Button
@@ -501,6 +506,31 @@ const BasicSettings = ({
             </Button>
           </div>
         )}
+      </Box>
+    </FormProvider>
+  );
+};
+
+const OptionsSettings = () => {
+  const methods = useForm<Project.FormOptionSettings>();
+
+  const onSubmit = (data: Project.FormOptionSettings) => {
+    console.log(data);
+  };
+  return (
+    <FormProvider {...methods}>
+      <Box
+        as="form"
+        className="flex flex-col items-start gap-y-3"
+        onSubmit={methods.handleSubmit(onSubmit)}
+      >
+        <FormItem label="是否啟用" path="isAbled">
+          <Switch
+            colorScheme="primary"
+            size="sm"
+            {...methods.register('isAbled')}
+          />
+        </FormItem>
       </Box>
     </FormProvider>
   );
@@ -702,97 +732,105 @@ const ProjectSettings = () => {
   );
 
   return (
-    <Flex
-      w="full"
-      flexDirection={{ base: 'column', lg: 'row' }}
-      gap={{ base: 5 }}
-    >
-      <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>
-        <SettingsBlock
-          title="主視覺"
-          renderButton={
-            <Button
-              size="sm"
-              colorScheme="primary"
-              variant="outline"
-              display={{ base: visionEdit ? 'none' : '' }}
-              onClick={() => {
-                setVisionEdit(!visionEdit);
-              }}
-            >
-              編輯設定
-            </Button>
-          }
-        >
-          <KeyVisionSettings
-            isEdit={visionEdit}
-            isLoading={isLoading}
-            setEdit={setVisionEdit}
-            projectData={data}
-          />
-        </SettingsBlock>
-        <SettingsBlock
-          title="專案預覽"
-          renderButton={
-            <Button size="sm" colorScheme="primary" variant="outline">
-              更新預覽網址
-            </Button>
-          }
-        >
-          <ProjectPerView isLoading={isLoading} projectData={data} />
-        </SettingsBlock>
-        <SettingsBlock title="專案資訊">
-          <ProjectInfo isLoading={isLoading} projectData={data} />
-        </SettingsBlock>
+    <>
+      <Flex
+        w="full"
+        flexDirection={{ base: 'column', lg: 'row' }}
+        gap={{ base: 5 }}
+      >
+        <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>
+          <SettingsBlock
+            title="主視覺"
+            renderButton={
+              <Button
+                size="sm"
+                colorScheme="primary"
+                variant="outline"
+                display={{ base: visionEdit ? 'none' : '' }}
+                onClick={() => {
+                  setVisionEdit(!visionEdit);
+                }}
+              >
+                編輯設定
+              </Button>
+            }
+          >
+            <KeyVisionSettings
+              isEdit={visionEdit}
+              isLoading={isLoading}
+              setEdit={setVisionEdit}
+              projectData={data}
+            />
+          </SettingsBlock>
+          <SettingsBlock
+            title="專案預覽"
+            renderButton={
+              <Button size="sm" colorScheme="primary" variant="outline">
+                更新預覽網址
+              </Button>
+            }
+          >
+            <ProjectPerView isLoading={isLoading} projectData={data} />
+          </SettingsBlock>
+          <SettingsBlock title="專案資訊">
+            <ProjectInfo isLoading={isLoading} projectData={data} />
+          </SettingsBlock>
+        </Flex>
+        <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>
+          <SettingsBlock
+            title="基本設定"
+            renderButton={
+              <Button
+                size="sm"
+                colorScheme="primary"
+                variant="outline"
+                display={{ base: basicEdit ? 'none' : '' }}
+                onClick={() => {
+                  setBasicEdit(!basicEdit);
+                }}
+              >
+                編輯設定
+              </Button>
+            }
+          >
+            <BasicSettings
+              isEdit={basicEdit}
+              setEdit={setBasicEdit}
+              isLoading={isLoading}
+              projectData={data}
+            ></BasicSettings>
+          </SettingsBlock>
+          <SettingsBlock
+            title="付款設定"
+            renderButton={
+              <Button
+                size="sm"
+                colorScheme="primary"
+                variant="outline"
+                display={{ base: payEdit ? 'none' : '' }}
+                onClick={() => {
+                  setPayEdit(!payEdit);
+                }}
+              >
+                編輯設定
+              </Button>
+            }
+          >
+            <PaymentSettings
+              isEdit={payEdit}
+              isLoading={isLoading}
+              setEdit={setPayEdit}
+            ></PaymentSettings>
+          </SettingsBlock>
+          <SettingsBlock title="專案啟用">
+            <OptionsSettings></OptionsSettings>
+          </SettingsBlock>
+        </Flex>
       </Flex>
-      <Flex w="full" flexDirection={{ base: 'column' }} gap={{ base: 5 }}>
-        <SettingsBlock
-          title="基本設定"
-          renderButton={
-            <Button
-              size="sm"
-              colorScheme="primary"
-              variant="outline"
-              display={{ base: basicEdit ? 'none' : '' }}
-              onClick={() => {
-                setBasicEdit(!basicEdit);
-              }}
-            >
-              編輯設定
-            </Button>
-          }
-        >
-          <BasicSettings
-            isEdit={basicEdit}
-            setEdit={setBasicEdit}
-            isLoading={isLoading}
-            projectData={data}
-          ></BasicSettings>
-        </SettingsBlock>
-        <SettingsBlock
-          title="付款設定"
-          renderButton={
-            <Button
-              size="sm"
-              colorScheme="primary"
-              variant="outline"
-              display={{ base: payEdit ? 'none' : '' }}
-              onClick={() => {
-                setPayEdit(!payEdit);
-              }}
-            >
-              編輯設定
-            </Button>
-          }
-        >
-          <PaymentSettings
-            isEdit={payEdit}
-            isLoading={isLoading}
-            setEdit={setPayEdit}
-          ></PaymentSettings>
-        </SettingsBlock>
-      </Flex>
-    </Flex>
+      <Center py={5}>
+        <Button colorScheme="primary">轉為長期販售商品</Button>
+      </Center>
+    </>
   );
 };
 

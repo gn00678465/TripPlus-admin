@@ -12,7 +12,10 @@ export function useFileReader(file?: File) {
   }, []);
 
   useEffect(() => {
-    if (!file) return;
+    if (!file) {
+      setDataURL(null);
+      return;
+    }
     readAsDataURL(file);
   }, [file, readAsDataURL]);
 

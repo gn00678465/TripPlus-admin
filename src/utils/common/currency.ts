@@ -10,3 +10,7 @@ export function currency(
     minimumFractionDigits: digits
   }).format(num);
 }
+
+export function currencyTWD(number: number) {
+  return currency(number, 'zh-TW', 'TWD');
+}

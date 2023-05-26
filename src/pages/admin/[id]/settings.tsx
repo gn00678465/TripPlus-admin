@@ -74,17 +74,12 @@ const SettingsBlock = ({
       backgroundColor="white"
       {...rest}
     >
-      <Flex
-        mb={{ base: 6, md: 12 }}
-        justifyContent="space-between"
-        alignItems="center"
-      >
+      <Flex mb={{ base: 6 }} justifyContent="space-between" alignItems="center">
         <Heading as="h3" fontSize="2xl">
           {title}
         </Heading>
         {renderButton}
       </Flex>
-      {/* <Divider orientation="horizontal" /> */}
       {children}
     </Box>
   );
@@ -154,8 +149,8 @@ const SwitchField = ({
         <Text
           w="full"
           visibility={text ? 'visible' : 'hidden'}
-          pl={1}
-          fontSize="20px"
+          pl={0}
+          fontSize="md"
           lineHeight="32px"
         >
           {text}
@@ -328,7 +323,7 @@ const BasicSettings = ({
     <FormProvider {...methods}>
       <Box
         as="form"
-        className="flex flex-col items-start gap-y-3"
+        className="flex flex-col items-start gap-y-5"
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <FormItem label="專案名稱" placeholder="請填入專案名稱" path="title">
@@ -392,17 +387,34 @@ const BasicSettings = ({
           path="startTime"
         >
           <SwitchField
-            text={methods.getValues('startTime')}
+            text={dayjs(methods.getValues('startTime'))
+              .utc(true)
+              .format('YYYY-MM-DD HH:mm')}
             isEdit={isEdit}
             isLoading={isLoading}
           >
-            <Input
-              size="sm"
-              placeholder="選擇專案開始時間"
-              type="date"
-              {...methods.register('startTime', {
-                required: '請選擇專案開始時間'
-              })}
+            <Controller
+              control={methods.control}
+              name="startTime"
+              rules={{ required: '請選擇專案開始時間' }}
+              render={() => (
+                <Input
+                  size="sm"
+                  placeholder="選擇專案開始時間"
+                  type="date"
+                  value={dayjs(methods.getValues('startTime'))
+                    .utc(true)
+                    .format('YYYY-MM-DD')}
+                  onChange={(e) => {
+                    methods.setValue(
+                      'startTime',
+                      dayjs(e.target.value)
+                        .startOf('day')
+                        .format('YYYY-MM-DDTHH:mm:ssZ')
+                    );
+                  }}
+                />
+              )}
             />
           </SwitchField>
         </FormItem>
@@ -412,17 +424,34 @@ const BasicSettings = ({
           path="endTime"
         >
           <SwitchField
-            text={methods.getValues('endTime')}
+            text={dayjs(methods.getValues('endTime'))
+              .utc(true)
+              .format('YYYY-MM-DD HH:mm')}
             isEdit={isEdit}
             isLoading={isLoading}
           >
-            <Input
-              size="sm"
-              placeholder="選擇專案結束時間"
-              type="date"
-              {...methods.register('endTime', {
-                required: '請選擇專案結束時間'
-              })}
+            <Controller
+              control={methods.control}
+              name="endTime"
+              rules={{ required: '請選擇專案結束時間' }}
+              render={({ field: { value } }) => (
+                <Input
+                  size="sm"
+                  placeholder="選擇專案結束時間"
+                  type="date"
+                  value={dayjs(methods.getValues('endTime'))
+                    .utc(true)
+                    .format('YYYY-MM-DD')}
+                  onChange={(e) => {
+                    methods.setValue(
+                      'endTime',
+                      dayjs(e.target.value)
+                        .endOf('day')
+                        .format('YYYY-MM-DDTHH:mm:ssZ')
+                    );
+                  }}
+                />
+              )}
             />
           </SwitchField>
         </FormItem>
@@ -447,10 +476,23 @@ const BasicSettings = ({
           </SwitchField>
         </FormItem>
         <FormItem label="顯示預計目標金額" path="isShowTarget">
-          <Switch
-            colorScheme="primary"
-            size="sm"
-            {...methods.register('isShowTarget')}
+          <Controller
+            control={methods.control}
+            name="isShowTarget"
+            render={({ field: { value } }) => (
+              <Switch
+                colorScheme="primary"
+                size="sm"
+                checked={!!value}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    methods.setValue('isShowTarget', 1);
+                  } else {
+                    methods.setValue('isShowTarget', 0);
+                  }
+                }}
+              />
+            )}
           />
         </FormItem>
         <FormItem label="專案網址" path="isShowTarget">
@@ -463,10 +505,23 @@ const BasicSettings = ({
           </SwitchField>
         </FormItem>
         <FormItem label="庫存限量標示" path="isLimit">
-          <Switch
-            colorScheme="primary"
-            size="sm"
-            {...methods.register('isLimit')}
+          <Controller
+            control={methods.control}
+            name="isLimit"
+            render={({ field: { value } }) => (
+              <Switch
+                colorScheme="primary"
+                size="sm"
+                checked={!!value}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    methods.setValue('isLimit', 1);
+                  } else {
+                    methods.setValue('isLimit', 0);
+                  }
+                }}
+              />
+            )}
           />
         </FormItem>
         <Divider />
@@ -521,7 +576,7 @@ const OptionsSettings = () => {
     <FormProvider {...methods}>
       <Box
         as="form"
-        className="flex flex-col items-start gap-y-3"
+        className="flex flex-col items-start gap-y-5"
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <FormItem label="是否啟用" path="isAbled">
@@ -547,7 +602,7 @@ const PaymentSettings = ({ isEdit, isLoading, setEdit }: SettingsProps) => {
     <FormProvider {...methods}>
       <Box
         as="form"
-        className="flex flex-col items-start gap-y-3"
+        className="flex flex-col items-start gap-y-5"
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <FormItem label="付款方式" path="payment">
@@ -661,7 +716,7 @@ const TPListItem = ({
 
 const ProjectPerView = ({ isLoading, projectData }: SettingsProps) => {
   return (
-    <List className="flex flex-col items-start gap-y-3">
+    <List className="flex flex-col items-start gap-y-5">
       <TPListItem isLoading={isLoading} label="預覽連結">
         {projectData?.url}
       </TPListItem>
@@ -671,7 +726,7 @@ const ProjectPerView = ({ isLoading, projectData }: SettingsProps) => {
 
 const ProjectInfo = ({ isLoading, projectData }: SettingsProps) => {
   return (
-    <List>
+    <List className="space-y-4">
       <TPListItem isLoading={isLoading} label="訂單總數">
         {projectData?.orderCount || '-'}
       </TPListItem>

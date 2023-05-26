@@ -39,8 +39,8 @@ const Navbar: FC<NavbarProps> = ({ ...rest }: NavbarProps) => {
     <Box
       w="full"
       backgroundColor="white"
-      px={{ base: 3 }}
-      py={{ base: 0, sm: 3, md: 0, lg: 3 }}
+      px={{ base: 6 }}
+      py={{ base: 0, sm: 3, md: 0, lg: 4 }}
       borderRadius={2}
       {...rest}
     >

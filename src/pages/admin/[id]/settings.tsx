@@ -897,7 +897,15 @@ ProjectSettings.getLayout = function (page: ReactElement) {
       <Head>
         <title>專案管理</title>
       </Head>
-      <ProjectWrap className="h-full bg-gray-100">{page}</ProjectWrap>
+      <ProjectWrap
+        minH="calc(100vh)"
+        backgroundColor="gray.100"
+        px={{ base: 3, xl: 20 }}
+        pt={{ base: 10, xl: 20 }}
+        fontSize={{ base: 'sm', md: 'md' }}
+      >
+        {page}
+      </ProjectWrap>
     </AdminLayout>
   );
 };

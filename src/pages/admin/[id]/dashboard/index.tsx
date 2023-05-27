@@ -14,7 +14,7 @@ import {
   Grid,
   GridItem
 } from '@chakra-ui/react';
-import { AdminLayout } from '@/components';
+import { AdminLayout, Chat } from '@/components';
 import { MdOutlineMoreVert } from 'react-icons/md';
 import { init, getInstanceByDom } from 'echarts';
 import type { EChartsOption, ECharts, SetOptionOpts } from 'echarts';
@@ -376,11 +376,19 @@ const ProjectDashboard = () => {
         color="gray.500"
         fontWeight={400}
         pos="absolute"
-        bottom={'76px'}
+        bottom={10}
         left={20}
       >
         Copyright © 2023 TripPlus. All rights reserved.
       </Text>
+      <Box
+        pos={{ base: 'fixed', '2xl': 'absolute' }}
+        bottom={0}
+        left={{ base: 3, md: 'unset' }}
+        right={{ base: 3, '2xl': 20 }}
+      >
+        <Chat />
+      </Box>
     </Box>
   );
 };

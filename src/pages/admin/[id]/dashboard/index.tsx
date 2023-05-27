@@ -96,9 +96,9 @@ const DashboardBlock = ({ title, children, ...rest }: DashboardBlockProps) => {
   return (
     <Box
       backgroundColor="white"
-      px={{ base: 3, '2xl': 6 }}
-      pt={{ base: 4, '2xl': 6 }}
-      pb={{ base: 6, '2xl': 12 }}
+      px={{ base: 3, lg: 6, '2xl': 6 }}
+      pt={{ base: 4, lg: 6, '2xl': 6 }}
+      pb={{ base: 6, lg: 10, '2xl': 12 }}
       borderRadius={2}
       {...rest}
     >
@@ -132,13 +132,13 @@ const CompareBox = ({
 }: CompareBox) => {
   return (
     <Box
-      className="space-y-1"
+      className="space-y-1 xl:space-y-2"
       flexGrow={{ base: 1 }}
       textAlign="left"
       color="gray.900"
       {...rest}
     >
-      <Text fontSize={{ base: 'xs' }}>{header}</Text>
+      <Text fontSize={{ base: 'xs', xl: 'sm' }}>{header}</Text>
       <Text
         fontSize={{ base: '2xl' }}
         mb={{ base: 1 }}
@@ -146,7 +146,7 @@ const CompareBox = ({
       >
         {count}
       </Text>
-      <Text fontSize={{ base: 'xs' }}>
+      <Text fontSize={{ base: 'xs', xl: 'sm' }}>
         和昨天比
         <span
           className={`ml-2 ${
@@ -192,11 +192,20 @@ const CounterBox = ({ count = 0, label, ...rest }: CounterBoxProps) => {
 
 const ProjectDashboard = () => {
   return (
-    <>
+    <Box
+      minH="calc(100vh)"
+      w="full"
+      backgroundColor="gray.100"
+      px={{ base: 3, md: 8, xl: 16, '2xl': 20 }}
+      pt={{ base: 10, xl: 16, '2xl': 20 }}
+      pb={{ base: '76px' }}
+      fontSize={{ base: 'sm', md: 'md' }}
+      pos="relative"
+    >
       <Flex
         alignItems={{ base: 'flex-start', '2xl': 'center' }}
         className="gap-x-3"
-        mb={{ base: 5 }}
+        mb={{ base: 5, lg: 10 }}
       >
         <Tag
           flexShrink={0}
@@ -362,7 +371,17 @@ const ProjectDashboard = () => {
           </Flex>
         </DashboardBlock>
       </Flex>
-    </>
+      <Text
+        className="hidden 2xl:block"
+        color="gray.500"
+        fontWeight={400}
+        pos="absolute"
+        bottom={'76px'}
+        left={20}
+      >
+        Copyright © 2023 TripPlus. All rights reserved.
+      </Text>
+    </Box>
   );
 };
 
@@ -374,17 +393,7 @@ ProjectDashboard.getLayout = function (page: ReactElement) {
       <Head>
         <title>Dashboard</title>
       </Head>
-      <Box
-        minH="calc(100vh)"
-        w="full"
-        backgroundColor="gray.100"
-        px={{ base: 3, md: 8, xl: 16, '2xl': 20 }}
-        pt={{ base: 10, xl: 16, '2xl': 20 }}
-        pb={{ base: '76px' }}
-        fontSize={{ base: 'sm', md: 'md' }}
-      >
-        {page}
-      </Box>
+      {page}
     </AdminLayout>
   );
 };

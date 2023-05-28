@@ -48,7 +48,7 @@ import {
   apiPatchProjectEnable,
   apiPostProjectTransform
 } from '@/api';
-import { safeAwait, currencyTWD } from '@/utils';
+import { safeAwait, currencyTWD, swrFetch } from '@/utils';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { MdCameraEnhance } from 'react-icons/md';
 import dayjs from 'dayjs';
@@ -81,19 +81,8 @@ const KeyVisionSettings = ({
 
   const { trigger } = useSWRMutation(
     id ? `/admin/project/${id}/info/image` : null,
-    async (key, { arg }: { arg: Project.FormKeyVisionSettings }) => {
-      const [err, res] = await safeAwait(
-        apiPatchProjectImage(id as string, arg)
-      );
-      return new Promise<ApiProject.ProjectReturn>((resolve, reject) => {
-        if (res && res.status === 'Success') {
-          resolve(res.data);
-        }
-        if (err) {
-          reject(err);
-        }
-      });
-    }
+    (key, { arg }: { arg: Project.FormKeyVisionSettings }) =>
+      swrFetch(apiPatchProjectImage(id as string, arg))
   );
 
   function onClickCancel() {
@@ -111,43 +100,38 @@ const KeyVisionSettings = ({
   }, [dataURL, projectData]);
 
   const onSubmit = async (formInput: Project.FormKeyVisionSettings) => {
-    console.log(formInput);
-    if (!file) {
-      return;
+    let newFormInput = { ...formInput };
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      await triggerUpload(formData, {
+        onSuccess: (data, key, config) => {
+          if (data.status === 'Error') {
+            toast({
+              position: 'top',
+              title: data.message,
+              status: 'error',
+              duration: 5000,
+              isClosable: true
+            });
+          }
+          if (data.status === 'Success') {
+            newFormInput.keyVision = data.data.imageUrl;
+            methods.setValue('keyVision', data.data.imageUrl);
+          }
+        }
+      });
     }
-    const formData = new FormData();
-
-    formData.append('file', file);
-    await triggerUpload(formData, {
-      onSuccess: (data, key, config) => {
-        if (data.status === 'Error') {
-          toast({
-            position: 'top',
-            title: data.message,
-            status: 'error',
-            duration: 5000,
-            isClosable: true
-          });
-        }
-        if (data.status === 'Success') {
-          const params = {
-            ...formInput,
-            keyVision: data.data.imageUrl
-          };
-          methods.setValue('keyVision', data.data.imageUrl);
-          trigger(params, {
-            onSuccess(data, key, config) {
-              setEdit?.(!isEdit);
-              toast({
-                position: 'top',
-                title: '主視覺更新成功',
-                status: 'success',
-                duration: 5000,
-                isClosable: true
-              });
-            }
-          });
-        }
+    trigger(newFormInput, {
+      onSuccess(data, key, config) {
+        setEdit?.(!isEdit);
+        toast({
+          position: 'top',
+          title: '主視覺更新成功',
+          status: 'success',
+          duration: 5000,
+          isClosable: true
+        });
       }
     });
   };
@@ -155,7 +139,8 @@ const KeyVisionSettings = ({
   useEffect(() => {
     if (projectData) {
       methods.reset({
-        video: projectData.video
+        keyVision: projectData?.keyVision,
+        video: projectData?.video
       });
     }
   }, [methods, projectData]);
@@ -245,19 +230,8 @@ const BasicSettings = ({
   const toast = useToast();
   const { trigger } = useSWRMutation(
     id ? `/admin/project/${id}/info/settings` : null,
-    async (key, { arg }: { arg: Project.FormBasicSettings }) => {
-      const [err, res] = await safeAwait(
-        apiPatchProjInfoSetting(id as string, arg)
-      );
-      return new Promise<ApiProject.ProjectReturn>((resolve, reject) => {
-        if (res && res.status === 'Success') {
-          resolve(res.data);
-        }
-        if (err) {
-          reject(err);
-        }
-      });
-    }
+    (key, { arg }: { arg: Project.FormBasicSettings }) =>
+      swrFetch(apiPatchProjInfoSetting(id as string, arg))
   );
 
   useEffect(() => {
@@ -583,19 +557,8 @@ const OptionsSettings = ({
   const toast = useToast();
   const { trigger } = useSWRMutation(
     id ? `/admin/project/${id}/info/abled` : null,
-    async (key, { arg }: { arg: Project.FormOptionSettings }) => {
-      const [err, res] = await safeAwait(
-        apiPatchProjectEnable(id as string, arg)
-      );
-      return new Promise<ApiProject.ProjectReturn>((resolve, reject) => {
-        if (res && res.status === 'Success') {
-          resolve(res.data);
-        }
-        if (err) {
-          reject(err);
-        }
-      });
-    }
+    (key, { arg }: { arg: Project.FormOptionSettings }) =>
+      swrFetch(apiPatchProjectEnable(id as string, arg))
   );
 
   useEffect(() => {
@@ -607,13 +570,24 @@ const OptionsSettings = ({
   const onSubmit = (data: Project.FormOptionSettings) => {
     trigger(data, {
       onSuccess(data, key, config) {
-        toast({
-          position: 'top',
-          title: '專案已啟用',
-          status: 'success',
-          duration: 5000,
-          isClosable: true
-        });
+        if (!data.data.isAbled) {
+          toast({
+            position: 'top',
+            title: '專案已停用',
+            status: 'success',
+            duration: 5000,
+            isClosable: true
+          });
+        } else {
+          toast({
+            position: 'top',
+            title: '專案已啟用',
+            status: 'success',
+            duration: 5000,
+            isClosable: true
+          });
+        }
+        setEdit?.(!isEdit);
       },
       onError(err, key, config) {
         toast({
@@ -719,19 +693,8 @@ const PaymentSettings = ({
 
   const { trigger } = useSWRMutation(
     id ? `/admin/project/${id}/info/payment` : null,
-    async (key, { arg }: { arg: Project.FormPaymentSettings }) => {
-      const [err, res] = await safeAwait(
-        apiPatchProjInfoPayment(id as string, arg)
-      );
-      return new Promise<ApiProject.ProjectReturn>((resolve, reject) => {
-        if (res && res.status === 'Success') {
-          resolve(res.data);
-        }
-        if (err) {
-          reject(err);
-        }
-      });
-    }
+    (key, { arg }: { arg: Project.FormPaymentSettings }) =>
+      swrFetch(apiPatchProjInfoPayment(id as string, arg))
   );
 
   useEffect(() => {
@@ -960,19 +923,7 @@ const TransformButton = ({ projectData, id }: SettingsProps) => {
   const router = useRouter();
   const { trigger } = useSWRMutation(
     id ? `/admin/project/${id}/transform` : null,
-    async (key) => {
-      const [err, res] = await safeAwait(apiPostProjectTransform(id as string));
-      return new Promise<Service.SuccessResult<ApiProject.ProjectReturn>>(
-        (resolve, reject) => {
-          if (res && res.status === 'Success') {
-            resolve(res);
-          }
-          if (err) {
-            reject(err);
-          }
-        }
-      );
-    }
+    (key) => swrFetch(apiPostProjectTransform(id as string))
   );
 
   function handleClick() {

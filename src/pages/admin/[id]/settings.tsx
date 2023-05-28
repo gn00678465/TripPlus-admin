@@ -3,7 +3,6 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import {
   Box,
-  Heading,
   Flex,
   Divider,
   Button,
@@ -11,10 +10,8 @@ import {
   Input,
   Select,
   FormControl,
-  FormControlProps,
   FormLabel,
   FormErrorMessage,
-  FormHelperText,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
@@ -33,148 +30,63 @@ import {
   Skeleton,
   Center
 } from '@chakra-ui/react';
-import type { BoxProps } from '@chakra-ui/react';
 import { AdminLayout, ProjectWrap, ImageFallback } from '@/components';
+import { SettingsBlock, FormItem, SwitchField } from '@/components/Project';
 import useSwr from 'swr';
-import { apiFetchProjectInfo } from '@/api';
-import { safeAwait, currencyTWD } from '@/utils';
+import useSWRMutation from 'swr/mutation';
 import {
-  useForm,
-  UseFormReturn,
-  FormProvider,
-  useFormContext,
-  Controller
-} from 'react-hook-form';
+  apiFetchProjectInfo,
+  apiPatchProjInfoSetting,
+  apiPatchProjInfoPayment,
+  apiPatchProjectImage
+} from '@/api';
+import { safeAwait, currencyTWD } from '@/utils';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { MdCameraEnhance } from 'react-icons/md';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import NoImage from '@/assets/images/no-image.png';
-import { useFileReader } from '@/hooks';
+import { useFileReader, useUploadImage } from '@/hooks';
+import { statusEnum } from '@/enums';
 
 dayjs.extend(utc);
-
-interface SettingsBlockProps extends Omit<BoxProps, 'children'> {
-  title: string;
-  renderButton?: JSX.Element;
-  children?: string | JSX.Element | JSX.Element[] | (() => JSX.Element);
-}
-
-const SettingsBlock = ({
-  children,
-  title,
-  renderButton,
-  ...rest
-}: SettingsBlockProps) => {
-  return (
-    <Box
-      className="rounded-lg"
-      px={{ base: 3, md: 6 }}
-      pt={{ base: 4, md: 6 }}
-      pb={{ base: 6, md: 12 }}
-      backgroundColor="white"
-      {...rest}
-    >
-      <Flex mb={{ base: 6 }} justifyContent="space-between" alignItems="center">
-        <Heading as="h3" fontSize="2xl">
-          {title}
-        </Heading>
-        {renderButton}
-      </Flex>
-      {children}
-    </Box>
-  );
-};
-
-interface FormItem extends Omit<FormControlProps, 'children'> {
-  children: JSX.Element | JSX.Element[];
-  label: string;
-  path:
-    | keyof Project.FormBasicSettings
-    | keyof Project.FormPaymentSettings
-    | keyof Project.FormKeyVisionSettings
-    | keyof Project.FormOptionSettings;
-  showFeedback?: boolean;
-}
-
-const FormItem = ({
-  children,
-  label,
-  path,
-  showFeedback = true,
-  ...rest
-}: FormItem) => {
-  const {
-    formState: { errors }
-  } = useFormContext();
-  return (
-    <FormControl flexShrink={0} isInvalid={!!errors[path]} {...rest}>
-      <Box
-        display={{ base: 'block', sm: 'flex', md: 'block', '2xl': 'flex' }}
-        alignItems="center"
-      >
-        <FormLabel
-          mb={{ base: 2, '2xl': 0 }}
-          flexShrink={0}
-          flexBasis={{ base: 'auto', sm: '125px', md: 'auto', '2xl': '130px' }}
-        >
-          {label}
-        </FormLabel>
-        <div className="grow">{children}</div>
-      </Box>
-      {showFeedback && !!errors[path] && (
-        <FormErrorMessage className="visible">
-          {errors[path]?.message as string}
-        </FormErrorMessage>
-      )}
-    </FormControl>
-  );
-};
-
-const SwitchField = ({
-  children,
-  text = '-',
-  isEdit = false,
-  isLoading = false
-}: {
-  children: JSX.Element;
-  text?: string;
-  isEdit?: boolean;
-  isLoading?: boolean;
-}) => {
-  return (
-    <Skeleton isLoaded={!isLoading}>
-      {isEdit ? (
-        children
-      ) : (
-        <Text
-          w="full"
-          visibility={text ? 'visible' : 'hidden'}
-          pl={0}
-          fontSize="md"
-          lineHeight="32px"
-        >
-          {text}
-        </Text>
-      )}
-    </Skeleton>
-  );
-};
 
 interface SettingsProps {
   isEdit?: boolean;
   isLoading?: boolean;
   setEdit?: (arg: boolean) => void;
   projectData?: ApiProjectSettings.ProjectSettings;
+  id?: string | string[];
 }
 
 const KeyVisionSettings = ({
   isEdit,
   isLoading,
   setEdit,
-  projectData
+  projectData,
+  id
 }: SettingsProps) => {
   const methods = useForm<Project.FormKeyVisionSettings>();
   const [file, setFile] = useState<undefined | File>();
+  const { trigger: triggerUpload } = useUploadImage();
+  const toast = useToast();
+
+  const { trigger } = useSWRMutation(
+    id ? `/admin/project/${id}/info/image` : null,
+    async (key, { arg }: { arg: Project.FormKeyVisionSettings }) => {
+      const [err, res] = await safeAwait(
+        apiPatchProjectImage(id as string, arg)
+      );
+      return new Promise<ApiProject.ProjectReturn>((resolve, reject) => {
+        if (res && res.status === 'Success') {
+          resolve(res.data);
+        }
+        if (err) {
+          reject(err);
+        }
+      });
+    }
+  );
 
   function onClickCancel() {
     setEdit?.(!isEdit);
@@ -190,8 +102,46 @@ const KeyVisionSettings = ({
     return NoImage.src;
   }, [dataURL, projectData]);
 
-  const onSubmit = (data: Project.FormKeyVisionSettings) => {
-    console.log(data);
+  const onSubmit = async (formInput: Project.FormKeyVisionSettings) => {
+    console.log(formInput);
+    if (!file) {
+      return;
+    }
+    const formData = new FormData();
+
+    formData.append('file', file);
+    await triggerUpload(formData, {
+      onSuccess: (data, key, config) => {
+        if (data.status === 'Error') {
+          toast({
+            position: 'top',
+            title: data.message,
+            status: 'error',
+            duration: 5000,
+            isClosable: true
+          });
+        }
+        if (data.status === 'Success') {
+          const params = {
+            ...formInput,
+            keyVision: data.data.imageUrl
+          };
+          methods.setValue('keyVision', data.data.imageUrl);
+          trigger(params, {
+            onSuccess(data, key, config) {
+              setEdit?.(!isEdit);
+              toast({
+                position: 'top',
+                title: '主視覺更新成功',
+                status: 'success',
+                duration: 5000,
+                isClosable: true
+              });
+            }
+          });
+        }
+      }
+    });
   };
 
   useEffect(() => {
@@ -208,6 +158,7 @@ const KeyVisionSettings = ({
         as="form"
         onSubmit={methods.handleSubmit(onSubmit)}
         className="flex flex-col items-start gap-y-2"
+        pos="relative"
       >
         <FormControl>
           <p className="flex w-full items-center justify-end gap-x-4 py-2">
@@ -279,9 +230,27 @@ const BasicSettings = ({
   isEdit,
   isLoading,
   setEdit,
-  projectData
+  projectData,
+  id
 }: SettingsProps) => {
   const methods = useForm<Project.FormBasicSettings>();
+  const toast = useToast();
+  const { trigger } = useSWRMutation(
+    id ? `/admin/project/${id}/info/settings` : null,
+    async (key, { arg }: { arg: Project.FormBasicSettings }) => {
+      const [err, res] = await safeAwait(
+        apiPatchProjInfoSetting(id as string, arg)
+      );
+      return new Promise<ApiProject.ProjectReturn>((resolve, reject) => {
+        if (res && res.status === 'Success') {
+          resolve(res.data);
+        }
+        if (err) {
+          reject(err);
+        }
+      });
+    }
+  );
 
   useEffect(() => {
     if (projectData) {
@@ -301,7 +270,18 @@ const BasicSettings = ({
   }, [methods, projectData]);
 
   const onSubmit = (data: Project.FormBasicSettings) => {
-    console.log(data);
+    trigger(data, {
+      onSuccess(data, key, config) {
+        setEdit?.(!isEdit);
+        toast({
+          position: 'top',
+          title: '基本設定更新成功',
+          status: 'success',
+          duration: 5000,
+          isClosable: true
+        });
+      }
+    });
   };
 
   const categoryOptions = [
@@ -476,24 +456,31 @@ const BasicSettings = ({
           </SwitchField>
         </FormItem>
         <FormItem label="顯示預計目標金額" path="isShowTarget">
-          <Controller
-            control={methods.control}
-            name="isShowTarget"
-            render={({ field: { value } }) => (
-              <Switch
-                colorScheme="primary"
-                size="sm"
-                checked={!!value}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    methods.setValue('isShowTarget', 1);
-                  } else {
-                    methods.setValue('isShowTarget', 0);
-                  }
-                }}
-              />
-            )}
-          />
+          <SwitchField
+            text={!!methods.getValues('isShowTarget') ? '開啟' : '關閉'}
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
+            <Controller
+              control={methods.control}
+              name="isShowTarget"
+              render={({ field: { value } }) => (
+                <Switch
+                  colorScheme="primary"
+                  size="sm"
+                  isChecked={!!value}
+                  isDisabled={!isEdit}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      methods.setValue('isShowTarget', 1);
+                    } else {
+                      methods.setValue('isShowTarget', 0);
+                    }
+                  }}
+                />
+              )}
+            />
+          </SwitchField>
         </FormItem>
         <FormItem label="專案網址" path="isShowTarget">
           <SwitchField
@@ -505,29 +492,40 @@ const BasicSettings = ({
           </SwitchField>
         </FormItem>
         <FormItem label="庫存限量標示" path="isLimit">
-          <Controller
-            control={methods.control}
-            name="isLimit"
-            render={({ field: { value } }) => (
-              <Switch
-                colorScheme="primary"
-                size="sm"
-                checked={!!value}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    methods.setValue('isLimit', 1);
-                  } else {
-                    methods.setValue('isLimit', 0);
-                  }
-                }}
-              />
-            )}
-          />
+          <SwitchField
+            text={!!methods.getValues('isLimit') ? '完整顯示' : '不顯示'}
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
+            <Controller
+              control={methods.control}
+              name="isLimit"
+              render={({ field: { value } }) => (
+                <Switch
+                  colorScheme="primary"
+                  size="sm"
+                  isChecked={!!value}
+                  isDisabled={!isEdit}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      methods.setValue('isLimit', 1);
+                    } else {
+                      methods.setValue('isLimit', 0);
+                    }
+                  }}
+                />
+              )}
+            />
+          </SwitchField>
         </FormItem>
         <Divider />
         <FormItem label="SEO描述(限 100 字內)" path="seoDescription">
           <SwitchField
-            text={methods.getValues('seoDescription')}
+            text={
+              !methods.getValues('seoDescription')
+                ? '未設定'
+                : methods.getValues('seoDescription')
+            }
             isEdit={isEdit}
             isLoading={isLoading}
           >
@@ -591,11 +589,65 @@ const OptionsSettings = () => {
   );
 };
 
-const PaymentSettings = ({ isEdit, isLoading, setEdit }: SettingsProps) => {
+const PaymentSettings = ({
+  isEdit,
+  isLoading,
+  setEdit,
+  projectData,
+  id
+}: SettingsProps) => {
+  const paymentOptions: { label: string; value: 0 | 1 }[] = [
+    {
+      label: '只使用信用卡付款',
+      value: 0
+    },
+    {
+      label: '信用卡 + ATM付款 + 超商付款',
+      value: 1
+    }
+  ];
+  const toast = useToast();
   const methods = useForm<Project.FormPaymentSettings>();
 
+  const { trigger } = useSWRMutation(
+    id ? `/admin/project/${id}/info/settings` : null,
+    async (key, { arg }: { arg: Project.FormPaymentSettings }) => {
+      const [err, res] = await safeAwait(
+        apiPatchProjInfoPayment(id as string, arg)
+      );
+      return new Promise<ApiProject.ProjectReturn>((resolve, reject) => {
+        if (res && res.status === 'Success') {
+          resolve(res.data);
+        }
+        if (err) {
+          reject(err);
+        }
+      });
+    }
+  );
+
+  useEffect(() => {
+    methods.reset({
+      atmDeadline: projectData?.atmDeadline,
+      csDeadline: projectData?.csDeadline,
+      isAllowInstallment: projectData?.isAllowInstallment,
+      payment: projectData?.payment
+    });
+  }, [methods, projectData]);
+
   const onSubmit = (data: Project.FormPaymentSettings) => {
-    console.log(data);
+    trigger(data, {
+      onSuccess(data, key, config) {
+        toast({
+          position: 'top',
+          title: '付款設定更新成功',
+          status: 'success',
+          duration: 5000,
+          isClosable: true
+        });
+        setEdit?.(!isEdit);
+      }
+    });
   };
 
   return (
@@ -606,56 +658,133 @@ const PaymentSettings = ({ isEdit, isLoading, setEdit }: SettingsProps) => {
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <FormItem label="付款方式" path="payment">
-          <Controller
-            name="payment"
-            control={methods.control}
-            render={() => (
-              <RadioGroup colorScheme="primary">
-                <Radio value="1" mr={2}>
-                  只使用信用卡付款
-                </Radio>
-                <Radio value="2" mr={2}>
-                  信用卡 + ATM付款 + 超商付款
-                </Radio>
-              </RadioGroup>
-            )}
-          ></Controller>
+          <SwitchField
+            text={
+              paymentOptions.find(
+                (item) => item.value === methods.getValues('payment')
+              )?.label
+            }
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
+            <Controller
+              name="payment"
+              control={methods.control}
+              rules={{
+                required: '請選擇付款方式'
+              }}
+              render={({ field: { value } }) => (
+                <RadioGroup
+                  colorScheme="primary"
+                  value={`${value}`}
+                  onChange={(value) => {
+                    methods.setValue('payment', parseFloat(value) as 0 | 1);
+                  }}
+                >
+                  {paymentOptions.map((opt) => (
+                    <Radio key={opt.value} value={`${opt.value}`} mr={2}>
+                      {opt.label}
+                    </Radio>
+                  ))}
+                </RadioGroup>
+              )}
+            ></Controller>
+          </SwitchField>
         </FormItem>
         <FormItem label="信用卡付款" path="isAllowInstallment">
-          <Checkbox
-            colorScheme="primary"
-            {...methods.register('isAllowInstallment')}
+          <SwitchField
+            text={
+              !!methods.getValues('isAllowInstallment')
+                ? '可分期付款'
+                : '不可分期付款'
+            }
+            isEdit={isEdit}
+            isLoading={isLoading}
           >
-            開啟信用卡分期
-          </Checkbox>
+            <Controller
+              name="isAllowInstallment"
+              control={methods.control}
+              render={({ field: { value } }) => (
+                <Checkbox
+                  isChecked={!!value}
+                  colorScheme="primary"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      methods.setValue('isAllowInstallment', 1);
+                    } else {
+                      methods.setValue('isAllowInstallment', 0);
+                    }
+                  }}
+                >
+                  開啟信用卡分期
+                </Checkbox>
+              )}
+            ></Controller>
+          </SwitchField>
         </FormItem>
         <FormItem label="ATM 付款" path="atmDeadline">
-          <Flex className="gap-x-2" alignItems="center">
-            <Text>有限繳款期限: 贊助後第</Text>
-            <NumberInput size="sm" maxW={10} defaultValue={5} min={0} max={15}>
-              <NumberInputField
-                p={2}
-                {...methods.register('atmDeadline', {
-                  valueAsNumber: true
-                })}
-              />
-            </NumberInput>
-            <Text>天 23:59:59</Text>
-          </Flex>
+          <SwitchField
+            text={
+              methods.getValues('atmDeadline')
+                ? `有限繳款期限: 贊助後第 ${methods.getValues(
+                    'atmDeadline'
+                  )} 天 23:59:59`
+                : '未設定'
+            }
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
+            <Flex className="gap-x-2" alignItems="center">
+              <Text>有限繳款期限: 贊助後第</Text>
+              <NumberInput
+                size="sm"
+                maxW={10}
+                defaultValue={5}
+                min={0}
+                max={15}
+              >
+                <NumberInputField
+                  p={2}
+                  {...methods.register('atmDeadline', {
+                    valueAsNumber: true
+                  })}
+                />
+              </NumberInput>
+              <Text>天 23:59:59</Text>
+            </Flex>
+          </SwitchField>
         </FormItem>
         <FormItem label="超商付款" path="csDeadline">
-          <Flex className="gap-x-2" alignItems="center">
-            <Text>有限繳款期限: 贊助後第</Text>
-            <NumberInput size="sm" maxW={10} defaultValue={5} min={0} max={15}>
-              <NumberInputField
-                p={2}
-                {...methods.register('csDeadline', {
-                  valueAsNumber: true
-                })}
-              />
-            </NumberInput>
-            <Text>天 23:59:59</Text>
-          </Flex>
+          <SwitchField
+            text={
+              methods.getValues('csDeadline')
+                ? `有限繳款期限: 贊助後第 ${methods.getValues(
+                    'csDeadline'
+                  )} 天 23:59:59`
+                : '未設定'
+            }
+            isEdit={isEdit}
+            isLoading={isLoading}
+          >
+            <Flex className="gap-x-2" alignItems="center">
+              <Text>有限繳款期限: 贊助後第</Text>
+              <NumberInput
+                size="sm"
+                maxW={10}
+                defaultValue={5}
+                min={0}
+                max={15}
+              >
+                <NumberInputField
+                  p={2}
+                  {...methods.register('csDeadline', {
+                    valueAsNumber: true
+                  })}
+                />
+              </NumberInput>
+              <Text>天 23:59:59</Text>
+            </Flex>
+          </SwitchField>
         </FormItem>
         {isEdit && (
           <div className="flex items-center justify-end gap-x-2 self-end">
@@ -664,6 +793,7 @@ const PaymentSettings = ({ isEdit, isLoading, setEdit }: SettingsProps) => {
               variant="outline"
               onClick={() => {
                 setEdit?.(!isEdit);
+                methods.reset();
               }}
             >
               取消
@@ -758,7 +888,7 @@ const ProjectSettings = () => {
 
   const { id } = router.query;
 
-  const { data, isLoading } = useSwr(
+  const { data, isLoading, mutate } = useSwr(
     id ? `/admin/project/${id}/info` : null,
     async () => {
       const [err, res] = await safeAwait(apiFetchProjectInfo(id as string));
@@ -815,6 +945,7 @@ const ProjectSettings = () => {
               isLoading={isLoading}
               setEdit={setVisionEdit}
               projectData={data}
+              id={id}
             />
           </SettingsBlock>
           <SettingsBlock
@@ -853,6 +984,7 @@ const ProjectSettings = () => {
               setEdit={setBasicEdit}
               isLoading={isLoading}
               projectData={data}
+              id={id}
             ></BasicSettings>
           </SettingsBlock>
           <SettingsBlock
@@ -875,6 +1007,8 @@ const ProjectSettings = () => {
               isEdit={payEdit}
               isLoading={isLoading}
               setEdit={setPayEdit}
+              projectData={data}
+              id={id}
             ></PaymentSettings>
           </SettingsBlock>
           <SettingsBlock title="專案啟用">
@@ -882,9 +1016,12 @@ const ProjectSettings = () => {
           </SettingsBlock>
         </Flex>
       </Flex>
-      <Center py={5}>
-        <Button colorScheme="primary">轉為長期販售商品</Button>
-      </Center>
+      {data?.status === 'complete' &&
+        (data.category === 1 || data.category === 2) && (
+          <Center py={5}>
+            <Button colorScheme="primary">轉為長期販售商品</Button>
+          </Center>
+        )}
     </>
   );
 };

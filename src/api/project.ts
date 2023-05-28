@@ -66,5 +66,7 @@ export function apiPatchProjectEnable(
 }
 
 export function apiPostProjectTransform(id: string) {
-  return request.post(`/admin/project/${id}/transform`);
+  return request.post<ApiProject.ProjectReturn>(
+    `/admin/project/${id}/transform`
+  );
 }

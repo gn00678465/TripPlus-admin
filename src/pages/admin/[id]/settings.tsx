@@ -28,17 +28,25 @@ import {
   ListItem,
   Link,
   Skeleton,
-  Center
+  Center,
+  Tag
 } from '@chakra-ui/react';
 import { AdminLayout, ProjectWrap, ImageFallback } from '@/components';
-import { SettingsBlock, FormItem, SwitchField } from '@/components/Project';
+import {
+  SettingsBlock,
+  FormItem,
+  SwitchField,
+  TPListItem
+} from '@/components/Project';
 import useSwr from 'swr';
 import useSWRMutation from 'swr/mutation';
 import {
   apiFetchProjectInfo,
   apiPatchProjInfoSetting,
   apiPatchProjInfoPayment,
-  apiPatchProjectImage
+  apiPatchProjectImage,
+  apiPatchProjectEnable,
+  apiPostProjectTransform
 } from '@/api';
 import { safeAwait, currencyTWD } from '@/utils';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
@@ -199,7 +207,7 @@ const KeyVisionSettings = ({
         </FormControl>
         <FormItem label="集資影片" placeholder="請填入集資影片" path="video">
           <SwitchField
-            text={methods.getValues('video')}
+            content={methods.getValues('video')}
             isEdit={isEdit}
             isLoading={isLoading}
           >
@@ -308,7 +316,7 @@ const BasicSettings = ({
       >
         <FormItem label="專案名稱" placeholder="請填入專案名稱" path="title">
           <SwitchField
-            text={methods.getValues('title')}
+            content={methods.getValues('title')}
             isEdit={isEdit}
             isLoading={isLoading}
           >
@@ -322,7 +330,7 @@ const BasicSettings = ({
         </FormItem>
         <FormItem label="專案類型" path="title">
           <SwitchField
-            text={
+            content={
               categoryOptions.find(
                 (item) => item.value === methods.getValues('category')
               )?.label
@@ -349,7 +357,7 @@ const BasicSettings = ({
         </FormItem>
         <FormItem label="專案摘要" placeholder="請填入專案摘要" path="summary">
           <SwitchField
-            text={methods.getValues('summary')}
+            content={methods.getValues('summary')}
             isEdit={isEdit}
             isLoading={isLoading}
           >
@@ -367,7 +375,7 @@ const BasicSettings = ({
           path="startTime"
         >
           <SwitchField
-            text={dayjs(methods.getValues('startTime'))
+            content={dayjs(methods.getValues('startTime'))
               .utc(true)
               .format('YYYY-MM-DD HH:mm')}
             isEdit={isEdit}
@@ -404,7 +412,7 @@ const BasicSettings = ({
           path="endTime"
         >
           <SwitchField
-            text={dayjs(methods.getValues('endTime'))
+            content={dayjs(methods.getValues('endTime'))
               .utc(true)
               .format('YYYY-MM-DD HH:mm')}
             isEdit={isEdit}
@@ -437,7 +445,7 @@ const BasicSettings = ({
         </FormItem>
         <FormItem label="目標金額" path="target">
           <SwitchField
-            text={currencyTWD(methods.getValues('target'))}
+            content={currencyTWD(methods.getValues('target'))}
             isEdit={isEdit}
             isLoading={isLoading}
           >
@@ -457,7 +465,7 @@ const BasicSettings = ({
         </FormItem>
         <FormItem label="顯示預計目標金額" path="isShowTarget">
           <SwitchField
-            text={!!methods.getValues('isShowTarget') ? '開啟' : '關閉'}
+            content={!!methods.getValues('isShowTarget') ? '開啟' : '關閉'}
             isEdit={isEdit}
             isLoading={isLoading}
           >
@@ -484,7 +492,7 @@ const BasicSettings = ({
         </FormItem>
         <FormItem label="專案網址" path="isShowTarget">
           <SwitchField
-            text={methods.getValues('url')}
+            content={methods.getValues('url')}
             isEdit={isEdit}
             isLoading={isLoading}
           >
@@ -493,7 +501,7 @@ const BasicSettings = ({
         </FormItem>
         <FormItem label="庫存限量標示" path="isLimit">
           <SwitchField
-            text={!!methods.getValues('isLimit') ? '完整顯示' : '不顯示'}
+            content={!!methods.getValues('isLimit') ? '完整顯示' : '不顯示'}
             isEdit={isEdit}
             isLoading={isLoading}
           >
@@ -521,7 +529,7 @@ const BasicSettings = ({
         <Divider />
         <FormItem label="SEO描述(限 100 字內)" path="seoDescription">
           <SwitchField
-            text={
+            content={
               !methods.getValues('seoDescription')
                 ? '未設定'
                 : methods.getValues('seoDescription')
@@ -564,12 +572,70 @@ const BasicSettings = ({
   );
 };
 
-const OptionsSettings = () => {
+const OptionsSettings = ({
+  isEdit,
+  isLoading,
+  setEdit,
+  projectData,
+  id
+}: SettingsProps) => {
   const methods = useForm<Project.FormOptionSettings>();
+  const toast = useToast();
+  const { trigger } = useSWRMutation(
+    id ? `/admin/project/${id}/info/abled` : null,
+    async (key, { arg }: { arg: Project.FormOptionSettings }) => {
+      const [err, res] = await safeAwait(
+        apiPatchProjectEnable(id as string, arg)
+      );
+      return new Promise<ApiProject.ProjectReturn>((resolve, reject) => {
+        if (res && res.status === 'Success') {
+          resolve(res.data);
+        }
+        if (err) {
+          reject(err);
+        }
+      });
+    }
+  );
+
+  useEffect(() => {
+    methods.reset({
+      isAbled: projectData?.isAbled
+    });
+  }, [methods, projectData]);
 
   const onSubmit = (data: Project.FormOptionSettings) => {
-    console.log(data);
+    trigger(data, {
+      onSuccess(data, key, config) {
+        toast({
+          position: 'top',
+          title: '專案已啟用',
+          status: 'success',
+          duration: 5000,
+          isClosable: true
+        });
+      },
+      onError(err, key, config) {
+        toast({
+          position: 'top',
+          title: err.message,
+          status: 'error',
+          duration: 5000,
+          isClosable: true
+        });
+      }
+    });
   };
+
+  function renderTag() {
+    return !!methods.getValues('isAbled') ? (
+      <Tag color="secondary.500" backgroundColor="secondary.300">
+        已啟用
+      </Tag>
+    ) : (
+      <Tag>未啟用</Tag>
+    );
+  }
   return (
     <FormProvider {...methods}>
       <Box
@@ -578,12 +644,54 @@ const OptionsSettings = () => {
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <FormItem label="是否啟用" path="isAbled">
-          <Switch
-            colorScheme="primary"
-            size="sm"
-            {...methods.register('isAbled')}
-          />
+          <SwitchField
+            isEdit={isEdit}
+            isLoading={isLoading}
+            content={renderTag}
+          >
+            <Controller
+              control={methods.control}
+              name="isAbled"
+              render={({ field: { value } }) => (
+                <Switch
+                  colorScheme="primary"
+                  size="sm"
+                  isChecked={!!value}
+                  isDisabled={!isEdit}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      methods.setValue('isAbled', 1);
+                    } else {
+                      methods.setValue('isAbled', 0);
+                    }
+                  }}
+                />
+              )}
+            />
+          </SwitchField>
         </FormItem>
+        {isEdit && (
+          <div className="flex items-center justify-end gap-x-2 self-end">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setEdit?.(!isEdit);
+                methods.reset();
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              size="sm"
+              type="submit"
+              colorScheme="primary"
+              variant="outline"
+            >
+              儲存
+            </Button>
+          </div>
+        )}
       </Box>
     </FormProvider>
   );
@@ -610,7 +718,7 @@ const PaymentSettings = ({
   const methods = useForm<Project.FormPaymentSettings>();
 
   const { trigger } = useSWRMutation(
-    id ? `/admin/project/${id}/info/settings` : null,
+    id ? `/admin/project/${id}/info/payment` : null,
     async (key, { arg }: { arg: Project.FormPaymentSettings }) => {
       const [err, res] = await safeAwait(
         apiPatchProjInfoPayment(id as string, arg)
@@ -659,7 +767,7 @@ const PaymentSettings = ({
       >
         <FormItem label="付款方式" path="payment">
           <SwitchField
-            text={
+            content={
               paymentOptions.find(
                 (item) => item.value === methods.getValues('payment')
               )?.label
@@ -693,7 +801,7 @@ const PaymentSettings = ({
         </FormItem>
         <FormItem label="信用卡付款" path="isAllowInstallment">
           <SwitchField
-            text={
+            content={
               !!methods.getValues('isAllowInstallment')
                 ? '可分期付款'
                 : '不可分期付款'
@@ -724,7 +832,7 @@ const PaymentSettings = ({
         </FormItem>
         <FormItem label="ATM 付款" path="atmDeadline">
           <SwitchField
-            text={
+            content={
               methods.getValues('atmDeadline')
                 ? `有限繳款期限: 贊助後第 ${methods.getValues(
                     'atmDeadline'
@@ -756,7 +864,7 @@ const PaymentSettings = ({
         </FormItem>
         <FormItem label="超商付款" path="csDeadline">
           <SwitchField
-            text={
+            content={
               methods.getValues('csDeadline')
                 ? `有限繳款期限: 贊助後第 ${methods.getValues(
                     'csDeadline'
@@ -813,37 +921,6 @@ const PaymentSettings = ({
   );
 };
 
-const TPListItem = ({
-  label,
-  children,
-  isLoading
-}: {
-  label: string;
-  children?: JSX.Element | string | number;
-  isLoading?: boolean;
-}) => {
-  return (
-    <ListItem py={1}>
-      <div className="block w-full items-center xs:flex md:block 2xl:flex">
-        <Text
-          flexShrink={0}
-          w={{
-            base: 'auto',
-            xs: '125px',
-            md: 'auto',
-            '2xl': '130px'
-          }}
-        >
-          {label}
-        </Text>
-        <Skeleton flexGrow={1} isLoaded={!isLoading}>
-          <Text>{children}</Text>
-        </Skeleton>
-      </div>
-    </ListItem>
-  );
-};
-
 const ProjectPerView = ({ isLoading, projectData }: SettingsProps) => {
   return (
     <List className="flex flex-col items-start gap-y-5">
@@ -878,6 +955,63 @@ const ProjectInfo = ({ isLoading, projectData }: SettingsProps) => {
   );
 };
 
+const TransformButton = ({ projectData, id }: SettingsProps) => {
+  const toast = useToast();
+  const router = useRouter();
+  const { trigger } = useSWRMutation(
+    id ? `/admin/project/${id}/transform` : null,
+    async (key) => {
+      const [err, res] = await safeAwait(apiPostProjectTransform(id as string));
+      return new Promise<Service.SuccessResult<ApiProject.ProjectReturn>>(
+        (resolve, reject) => {
+          if (res && res.status === 'Success') {
+            resolve(res);
+          }
+          if (err) {
+            reject(err);
+          }
+        }
+      );
+    }
+  );
+
+  function handleClick() {
+    trigger(null, {
+      onSuccess(data, key, config) {
+        toast({
+          position: 'top',
+          title: data.message,
+          status: 'success',
+          duration: 5000,
+          isClosable: true
+        });
+        router.push('/admin/projects');
+      },
+      onError(err, key, config) {
+        toast({
+          position: 'top',
+          title: err.message,
+          status: 'error',
+          duration: 5000,
+          isClosable: true
+        });
+      }
+    });
+  }
+
+  return (
+    (projectData?.status === 'complete' &&
+      (projectData.category === 1 || projectData.category === 2) && (
+        <Center py={5}>
+          <Button colorScheme="primary" onClick={handleClick}>
+            轉為長期販售商品
+          </Button>
+        </Center>
+      )) ||
+    null
+  );
+};
+
 const ProjectSettings = () => {
   const router = useRouter();
   const toast = useToast();
@@ -885,6 +1019,7 @@ const ProjectSettings = () => {
   const [visionEdit, setVisionEdit] = useState(false);
   const [basicEdit, setBasicEdit] = useState(false);
   const [payEdit, setPayEdit] = useState(false);
+  const [optEdit, setOptEdit] = useState(false);
 
   const { id } = router.query;
 
@@ -1011,17 +1146,33 @@ const ProjectSettings = () => {
               id={id}
             ></PaymentSettings>
           </SettingsBlock>
-          <SettingsBlock title="專案啟用">
-            <OptionsSettings></OptionsSettings>
+          <SettingsBlock
+            title="專案啟用"
+            renderButton={
+              <Button
+                size="sm"
+                colorScheme="primary"
+                variant="outline"
+                display={{ base: optEdit ? 'none' : '' }}
+                onClick={() => {
+                  setOptEdit(!optEdit);
+                }}
+              >
+                編輯設定
+              </Button>
+            }
+          >
+            <OptionsSettings
+              isEdit={optEdit}
+              isLoading={isLoading}
+              setEdit={setOptEdit}
+              projectData={data}
+              id={id}
+            ></OptionsSettings>
           </SettingsBlock>
         </Flex>
       </Flex>
-      {data?.status === 'complete' &&
-        (data.category === 1 || data.category === 2) && (
-          <Center py={5}>
-            <Button colorScheme="primary">轉為長期販售商品</Button>
-          </Center>
-        )}
+      <TransformButton projectData={data} id={id} />
     </>
   );
 };

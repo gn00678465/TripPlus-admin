@@ -5,7 +5,6 @@ import {
   Flex,
   Heading,
   Tag,
-  Icon,
   BoxProps,
   Text,
   CircularProgress,
@@ -15,7 +14,6 @@ import {
   GridItem
 } from '@chakra-ui/react';
 import { AdminLayout, Chat } from '@/components';
-import { MdOutlineMoreVert } from 'react-icons/md';
 import { init, getInstanceByDom } from 'echarts';
 import type { EChartsOption, ECharts, SetOptionOpts } from 'echarts';
 
@@ -111,7 +109,6 @@ const DashboardBlock = ({ title, children, ...rest }: DashboardBlockProps) => {
         >
           {title}
         </Heading>
-        <Icon as={MdOutlineMoreVert} boxSize={{ base: 5, xl: 6 }}></Icon>
       </Flex>
       {children}
     </Box>
@@ -218,7 +215,7 @@ const ProjectDashboard = () => {
         >
           募資
         </Tag>
-        <h2 className="text-xl font-medium leading-6 tracking-[1px] text-gray-900 2xl:text-[28px] 2xl:font-bold 2xl:leading-8">
+        <h2 className="text-xl font-medium leading-6 tracking-[1px] text-gray-900 md:line-clamp-2 2xl:text-[28px] 2xl:font-bold 2xl:leading-8">
           台灣世界展望會「籃海計畫」|
           用籃球教育翻轉偏鄉孩子人生，追「球」夢想、站穩舞台！
         </h2>
@@ -365,8 +362,9 @@ const ProjectDashboard = () => {
               </CircularProgressLabel>
             </CircularProgress>
             <Divider mb={{ base: 4 }} />
-            <Text fontSize={{ base: 'md' }} color="gray.900">
-              倒數 <span className="mx-1">10</span>天
+            <Text fontSize={{ base: 'md', md: 'lg' }} color="gray.900">
+              倒數{' '}
+              <span className="mx-1 text-lg font-medium md:text-xl">10</span>天
             </Text>
           </Flex>
         </DashboardBlock>

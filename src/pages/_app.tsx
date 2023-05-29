@@ -46,7 +46,7 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
   return (
     <main
-      className={`${ubuntu.variable} ${noto_sans_tc.variable} ${alkatra.variable} font-sans`}
+      className={`${ubuntu.variable} ${noto_sans_tc.variable} ${alkatra.variable} h-full font-sans`}
     >
       <Chakra>{getLayout(<Component {...pageProps} />)}</Chakra>
     </main>

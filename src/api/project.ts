@@ -25,8 +25,48 @@ export function apiFetchProjectInfo(id: string, config?: AxiosRequestConfig) {
   );
 }
 
-export function apiProjInfoImage() {}
+export function apiPatchProjectImage(
+  id: string,
+  data: Project.FormKeyVisionSettings
+) {
+  return request.patch<ApiProject.ProjectReturn>(
+    `/admin/project/${id}/info/image`,
+    data
+  );
+}
 
-export function apiProjInfoSetting() {}
+export function apiPatchProjInfoSetting(
+  id: string,
+  data: Project.FormBasicSettings
+) {
+  return request.patch<ApiProject.ProjectReturn>(
+    `/admin/project/${id}/info/settings`,
+    data
+  );
+}
 
-export function apiProjInfoPayment() {}
+export function apiPatchProjInfoPayment(
+  id: string,
+  data: Project.FormPaymentSettings
+) {
+  return request.patch<ApiProject.ProjectReturn>(
+    `/admin/project/${id}/info/payment`,
+    data
+  );
+}
+
+export function apiPatchProjectEnable(
+  id: string,
+  data: Project.FormOptionSettings
+) {
+  return request.patch<ApiProject.ProjectReturn>(
+    `/admin/project/${id}/info/abled`,
+    data
+  );
+}
+
+export function apiPostProjectTransform(id: string) {
+  return request.post<ApiProject.ProjectReturn>(
+    `/admin/project/${id}/transform`
+  );
+}

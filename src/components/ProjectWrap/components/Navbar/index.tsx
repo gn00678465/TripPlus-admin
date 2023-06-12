@@ -18,15 +18,15 @@ const Navbar: FC<NavbarProps> = ({ ...rest }: NavbarProps) => {
       label: '專案資料'
     },
     {
-      href: `/admin/${id}/settings2`,
+      href: `/admin/${id}/content`,
       label: '專案內文'
     },
     {
-      href: `/admin/${id}/settings3`,
+      href: `/admin/${id}/teams`,
       label: '團隊資料'
     },
     {
-      href: `/admin/${id}/settings4`,
+      href: `/admin/${id}/plan`,
       label: '回饋方案'
     },
     {

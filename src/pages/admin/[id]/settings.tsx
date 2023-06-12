@@ -1134,7 +1134,7 @@ ProjectSettings.getLayout = function (page: ReactElement) {
   return (
     <AdminLayout>
       <Head>
-        <title>專案管理</title>
+        <title>專案管理-專案資料-TripPlus+</title>
       </Head>
       <ProjectWrap
         minH="calc(100vh)"

@@ -33,4 +33,8 @@ declare namespace Project {
   interface FormOptionSettings {
     isAbled: 0 | 1;
   }
+
+  interface ProjectContent {
+    content: string;
+  }
 }

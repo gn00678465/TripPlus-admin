@@ -32,21 +32,12 @@ export default function CKeditor({
         <CKEditor
           editor={ClassicEditor}
           data={value}
+          // config={{
+          //   extraPlugins: [ MyCustomUploadAdapterPlugin ],
+          // }}
           onChange={(event: any, editor: any) => {
             const data = editor.getData();
             onChange(data);
-          }}
-          config={{
-            toolbar: [
-              'heading',
-              '|',
-              'bold',
-              'italic',
-              'link',
-              'bulletedList',
-              'numberedList',
-              'blockQuote'
-            ]
           }}
         />
       ) : (

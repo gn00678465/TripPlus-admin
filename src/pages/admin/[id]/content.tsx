@@ -10,21 +10,19 @@ import useSWRMutation from 'swr/mutation';
 import { apiFetchProjectInfoContent, apiPostProjectInfoContent } from '@/api';
 import { swrFetch } from '@/utils';
 
+const CKeditor = dynamic(() => import('@/components/Editor'), { ssr: false });
 export default function ProjectContent() {
   const router = useRouter();
   const { id } = router.query;
   const [edit, setEdit] = useState(false);
-  // 使用 useState 一直觸發畫面 re-render
-  // const [content, setContent] = useState<string>('');
-  const content = useRef('');
-  const CKeditor = dynamic(() => import('@/components/Editor'), { ssr: false });
+  const [content, setContent] = useState<string>('');
 
   const { data, mutate } = useSWR(
     id ? `/admin/project/${id}/content` : null,
     () => swrFetch(apiFetchProjectInfoContent(id as string)),
     {
       onSuccess(data, key, config) {
-        content.current = data.data.content;
+        setContent(data.data.content);
       }
     }
   );
@@ -36,11 +34,10 @@ export default function ProjectContent() {
   );
 
   async function handleSaveContent() {
-    if (!content.current) {
+    if (!content) {
       return;
     }
-    console.log(content.current);
-    await trigger(content.current, {
+    await trigger(content, {
       onSuccess(data, key, config) {
         mutate();
         setEdit(false);
@@ -71,12 +68,11 @@ export default function ProjectContent() {
         ) : (
           <>
             <CKeditor
-              value={content.current}
+              value={content}
               name="content"
               editorLoaded={edit}
               onChange={(data) => {
-                // setContent(data);
-                content.current = data;
+                setContent(data);
               }}
             />
             <Center mt={5} columnGap={5}>

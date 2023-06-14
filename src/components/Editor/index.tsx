@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { MyUploadAdapterPlugin } from './UploadAdapter';
 
 interface CKeditorProps {
   onChange: (data: string) => void;
@@ -29,17 +30,24 @@ export default function CKeditor({
   return (
     <>
       {editorLoaded ? (
-        <CKEditor
-          editor={ClassicEditor}
-          data={value}
-          // config={{
-          //   extraPlugins: [ MyCustomUploadAdapterPlugin ],
-          // }}
-          onChange={(event: any, editor: any) => {
-            const data = editor.getData();
-            onChange(data);
-          }}
-        />
+        <div>
+          <CKEditor
+            editor={ClassicEditor}
+            data={value}
+            config={{
+              extraPlugins: [MyUploadAdapterPlugin]
+            }}
+            onChange={(event: any, editor: any) => {
+              const data = editor.getData();
+              onChange(data);
+            }}
+          />
+          <style jsx global>{`
+            .ck-editor__editable_inline {
+              min-height: 400px;
+            }
+          `}</style>
+        </div>
       ) : (
         <div>Editor loading</div>
       )}

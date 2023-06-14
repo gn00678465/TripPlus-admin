@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { AdminLayout, ProjectWrap } from '@/components';
 import { SettingsBlock } from '@/components/Project';
-import { Center, Button } from '@chakra-ui/react';
+import { Center, Button, Skeleton, Stack } from '@chakra-ui/react';
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { apiFetchProjectInfoContent, apiPostProjectInfoContent } from '@/api';
@@ -17,7 +17,7 @@ export default function ProjectContent() {
   const [edit, setEdit] = useState(false);
   const [content, setContent] = useState<string>('');
 
-  const { data, mutate } = useSWR(
+  const { data, mutate, isLoading } = useSWR(
     id ? `/admin/project/${id}/content` : null,
     () => swrFetch(apiFetchProjectInfoContent(id as string)),
     {
@@ -64,7 +64,15 @@ export default function ProjectContent() {
         }
       >
         {!edit ? (
-          data?.data.content
+          isLoading ? (
+            <Stack>
+              <Skeleton height="20px" />
+              <Skeleton height="20px" />
+              <Skeleton height="20px" />
+            </Stack>
+          ) : (
+            data?.data.content
+          )
         ) : (
           <>
             <CKeditor

@@ -1,4 +1,4 @@
-import { ReactElement, useState, useRef, useEffect } from 'react';
+import { ReactElement, useState, useRef, useEffect, useMemo } from 'react';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -11,6 +11,7 @@ import { apiFetchProjectInfoContent, apiPostProjectInfoContent } from '@/api';
 import { swrFetch } from '@/utils';
 
 const CKeditor = dynamic(() => import('@/components/Editor'), { ssr: false });
+
 export default function ProjectContent() {
   const router = useRouter();
   const { id } = router.query;
@@ -21,11 +22,16 @@ export default function ProjectContent() {
     id ? `/admin/project/${id}/content` : null,
     () => swrFetch(apiFetchProjectInfoContent(id as string)),
     {
+      revalidateOnFocus: false,
       onSuccess(data, key, config) {
         setContent(data.data.content);
       }
     }
   );
+
+  const _content = useMemo(() => {
+    return data?.data.content || '';
+  }, [data]);
 
   const { trigger } = useSWRMutation(
     id ? `/admin/project/${id}/info/content` : null,
@@ -71,7 +77,11 @@ export default function ProjectContent() {
               <Skeleton height="20px" />
             </Stack>
           ) : (
-            data?.data.content
+            <div
+              dangerouslySetInnerHTML={{
+                __html: _content
+              }}
+            ></div>
           )
         ) : (
           <>

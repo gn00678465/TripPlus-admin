@@ -20,6 +20,7 @@ export default function CKeditor({
     CKEditor: typeof CKEditor;
     ClassicEditor: typeof ClassicEditor;
   }>();
+
   useEffect(() => {
     editorRef.current = {
       CKEditor: require('@ckeditor/ckeditor5-react').CKEditor,
@@ -32,9 +33,29 @@ export default function CKeditor({
       {editorLoaded ? (
         <div>
           <CKEditor
+            id={name}
             editor={ClassicEditor}
             data={value}
             config={{
+              toolbar: [
+                'heading',
+                '|',
+                'bold',
+                'italic',
+                'blockQuote',
+                'link',
+                'numberedList',
+                'bulletedList',
+                'imageUpload',
+                'insertTable',
+                'tableColumn',
+                'tableRow',
+                'mergeTableCells',
+                'mediaEmbed',
+                '|',
+                'undo',
+                'redo'
+              ],
               extraPlugins: [MyUploadAdapterPlugin]
             }}
             onChange={(event: any, editor: any) => {

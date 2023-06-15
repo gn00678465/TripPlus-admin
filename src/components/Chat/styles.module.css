@@ -1,0 +1,47 @@
+.chat-container {
+  position: fixed;
+  bottom: 0;
+  left: 0.75rem;
+  right: 0.75rem;
+  height: calc(40px + 0vh);
+  transition: all 0.3s ease-in-out;
+}
+
+.chat-container.active {
+  left: 0;
+  right: 0;
+  height: calc(100vh);
+}
+
+.chat-container .chat-content {
+  overflow: hidden;
+  height: calc(100%);
+  transition: 0.3s max-height ease-in-out, 0.3s height ease-in-out;
+  background-color: white;
+}
+
+.chat-container.active .chat-content {
+  overflow: none;
+}
+
+@media screen and (min-width: 650px) {
+  .chat-container {
+    right: 5rem;
+    left: unset;
+    width: 273px;
+    height: calc(48px);
+  }
+  
+  .chat-container.active {
+    right: 5rem;
+    left: unset;
+    width: 648px;
+    height: calc(48px + 548px);
+  }
+  
+  .chat-container .chat-content {
+  }
+  
+  .chat-container.active .chat-content {
+  }
+}

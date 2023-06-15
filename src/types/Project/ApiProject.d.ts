@@ -52,3 +52,9 @@ declare namespace ApiProjectSettings {
     type: Common.Type;
   }
 }
+
+declare namespace ApiProjectContent {
+  type Content = {
+    content: string;
+  };
+}

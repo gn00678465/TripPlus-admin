@@ -70,3 +70,17 @@ export function apiPostProjectTransform(id: string) {
     `/admin/project/${id}/transform`
   );
 }
+
+export function apiFetchProjectInfoContent(id: string) {
+  return request.get<ApiProjectContent.Content>(`/admin/project/${id}/content`);
+}
+
+export function apiPostProjectInfoContent(
+  id: string,
+  data: Project.ProjectContent
+) {
+  return request.patch<ApiProjectContent.Content>(
+    `/admin/project/${id}/info/content`,
+    data
+  );
+}

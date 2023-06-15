@@ -35,6 +35,7 @@ export default function AdminProject() {
   const router = useRouter();
   const toast = useToast();
   const [imgErr, setImgErr] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
   const { trigger } = useUploadImage();
 
@@ -74,9 +75,11 @@ export default function AdminProject() {
   ];
 
   async function onSubmit(formInput: Project.FormInputs) {
+    setLoading(true);
     setImgErr(false);
     if (!file) {
       setImgErr(true);
+      setLoading(false);
       return;
     }
     const formData = new FormData();
@@ -107,7 +110,7 @@ export default function AdminProject() {
             const res = await apiPostProject(params);
 
             if (res.status === 'Success') {
-              router.push(`/admin/project/${res.data._id}/dashboard`);
+              router.push(`/admin/${res.data._id}/dashboard`);
             }
             if (res.status === 'Error') {
               toast({
@@ -120,6 +123,7 @@ export default function AdminProject() {
             }
           });
         }
+        setLoading(false);
       }
     });
   }
@@ -348,7 +352,12 @@ export default function AdminProject() {
               <Button px={12} onClick={onCancel}>
                 取消
               </Button>
-              <Button px={12} type="submit" colorScheme="primary">
+              <Button
+                isLoading={loading}
+                px={12}
+                type="submit"
+                colorScheme="primary"
+              >
                 儲存
               </Button>
             </Center>

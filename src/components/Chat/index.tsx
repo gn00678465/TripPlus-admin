@@ -1,5 +1,13 @@
-import { Stack, Text, StackProps, useDisclosure, Icon } from '@chakra-ui/react';
+import {
+  Stack,
+  Text,
+  StackProps,
+  useDisclosure,
+  Icon,
+  Flex
+} from '@chakra-ui/react';
 import { MdKeyboardArrowDown } from 'react-icons/md';
+import { ChatRoom, ChatList } from './components';
 import styles from './styles.module.css';
 
 export default function Chat() {
@@ -19,7 +27,6 @@ export default function Chat() {
         `}
         onClick={(e) => {
           e.stopPropagation();
-          console.log('outer');
           onOpen();
         }}
       >
@@ -50,7 +57,12 @@ export default function Chat() {
           }}
         ></Icon>
       </div>
-      <div className={styles['chat-content']}>content</div>
+      <div className={styles['chat-content']}>
+        <Flex>
+          <ChatRoom></ChatRoom>
+          <ChatList></ChatList>
+        </Flex>
+      </div>
     </div>
   );
 }

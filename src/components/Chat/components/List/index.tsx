@@ -16,7 +16,6 @@ export function ChatList() {
       py={4}
       flexDirection="column"
       overflowY="auto"
-      maxH={546}
       borderLeftWidth="1px"
       borderLeftStyle="solid"
       borderLeftColor="gray.100"

@@ -8,6 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { MdKeyboardArrowDown } from 'react-icons/md';
 import { ChatRoom, ChatList } from './components';
+import { ScrollbarBox } from '@/components';
 import styles from './styles.module.css';
 
 export default function Chat() {
@@ -60,7 +61,9 @@ export default function Chat() {
       <div className={styles['chat-content']}>
         <Flex>
           <ChatRoom></ChatRoom>
-          <ChatList></ChatList>
+          <ScrollbarBox height={546}>
+            <ChatList></ChatList>
+          </ScrollbarBox>
         </Flex>
       </div>
     </div>

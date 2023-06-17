@@ -1,8 +1,6 @@
 import { Box, BoxProps } from '@chakra-ui/react';
 
-interface ScrollbarBoxProps extends BoxProps {
-  height: number;
-}
+interface ScrollbarBoxProps extends BoxProps {}
 
 const ScrollbarBox = ({ height, children }: ScrollbarBoxProps) => {
   return (

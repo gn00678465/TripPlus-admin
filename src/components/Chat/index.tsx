@@ -60,8 +60,11 @@ export default function Chat() {
       </div>
       <div className={styles['chat-content']}>
         <Flex>
-          <ChatRoom></ChatRoom>
-          <ScrollbarBox height={546}>
+          <ChatRoom w={{ base: 'full', lg: '400px' }} flexShrink={0} />
+          <ScrollbarBox
+            height={{ base: 'full', lg: 546 }}
+            w={{ base: 'full', lg: 'auto' }}
+          >
             <ChatList></ChatList>
           </ScrollbarBox>
         </Flex>

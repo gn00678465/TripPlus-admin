@@ -1,4 +1,4 @@
-import { Text, Textarea, Icon, Flex, Box } from '@chakra-ui/react';
+import { Text, Textarea, Icon, Flex, Box, BoxProps } from '@chakra-ui/react';
 import { BsSend } from 'react-icons/bs';
 import { CiImageOn } from 'react-icons/Ci';
 import { SlEmotsmile, SlSocialYoutube } from 'react-icons/sl';
@@ -66,9 +66,11 @@ const Receiver = ({ text }: { text: string }) => {
   );
 };
 
-export function ChatRoom() {
+export interface ChatRoomProps extends BoxProps {}
+
+export function ChatRoom(props: ChatRoomProps) {
   return (
-    <Box w={{ base: 'full', lg: '400px' }} bg="gray.100" flexShrink={0}>
+    <Box bg="gray.100" {...props}>
       <Text py={2} pl={4} fontSize="xs" color="gray.400" bg="white">
         abc123456
       </Text>

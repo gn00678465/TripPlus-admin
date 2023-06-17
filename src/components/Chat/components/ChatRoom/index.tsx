@@ -4,6 +4,7 @@ import { CiImageOn } from 'react-icons/Ci';
 import { SlEmotsmile, SlSocialYoutube } from 'react-icons/sl';
 import { ImageFallback } from '@/components';
 import NoImage from '@/assets/images/no-image.png';
+import { ScrollbarBox } from '@/components';
 
 const ProjectInfo = () => {
   return (
@@ -74,15 +75,22 @@ export function ChatRoom(props: ChatRoomProps) {
       <Text py={2} pl={4} fontSize="xs" color="gray.400" bg="white">
         abc123456
       </Text>
-      <Text fontSize="xs" color="gray.400" textAlign="center" pt={4} pb={2}>
-        2021.03.18 00:45
-      </Text>
-      <ProjectInfo />
-      <Box px={4} py={2} className="space-y-6">
-        <Sender text="您好，我想請問一下這個活動的偏鄉地區是在哪邊呢？" />
-        <Receiver text="主要是幫助東部偏鄉的小朋友，籌助資金，讓他們也能站上夢想的舞台！" />
-        <Sender text="好的，謝謝！" />
-      </Box>
+      <ScrollbarBox
+        height={{
+          base: 'calc(100vh - 125px - 34px - 40px)',
+          lg: 'calc(546px - 125px - 34px)'
+        }}
+      >
+        <Text fontSize="xs" color="gray.400" textAlign="center" pt={4} pb={2}>
+          2021.03.18 00:45
+        </Text>
+        <ProjectInfo />
+        <Box px={4} py={2} className="space-y-6">
+          <Sender text="您好，我想請問一下這個活動的偏鄉地區是在哪邊呢？" />
+          <Receiver text="主要是幫助東部偏鄉的小朋友，籌助資金，讓他們也能站上夢想的舞台！" />
+          <Sender text="好的，謝謝！" />
+        </Box>
+      </ScrollbarBox>
       <Box className="border-t-[1px] border-t-gray-200" py={3} px={4}>
         <Textarea
           placeholder="輸入文字..."

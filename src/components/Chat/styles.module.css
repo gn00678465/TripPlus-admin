@@ -24,6 +24,14 @@
   overflow: none;
 }
 
+.chat-content_mobile > * {
+  transition: transform 0.3s ease-in-out;
+}
+
+.chat-content_mobile.slider > * {
+  transform: translateX(-100%);
+}
+
 @media screen and (min-width: 650px) {
   .chat-container {
     right: 5rem;
@@ -31,17 +39,17 @@
     width: 273px;
     height: calc(48px);
   }
-  
+
   .chat-container.active {
     right: 5rem;
     left: unset;
     width: 648px;
     height: calc(48px + 548px);
   }
-  
+
   .chat-container .chat-content {
   }
-  
+
   .chat-container.active .chat-content {
   }
 }

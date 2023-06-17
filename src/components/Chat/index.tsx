@@ -1,18 +1,16 @@
-import {
-  Stack,
-  Text,
-  StackProps,
-  useDisclosure,
-  Icon,
-  Flex
-} from '@chakra-ui/react';
-import { MdKeyboardArrowDown } from 'react-icons/md';
+import { useDisclosure, Icon } from '@chakra-ui/react';
+import { MdKeyboardArrowDown, MdKeyboardArrowLeft } from 'react-icons/md';
 import { ChatRoom, ChatList } from './components';
 import { ScrollbarBox } from '@/components';
 import styles from './styles.module.css';
 
 export default function Chat() {
-  const { isOpen, onOpen, onClose, onToggle } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: sliderIsOpen,
+    onOpen: onSlideOpen,
+    onClose: onSliderClose
+  } = useDisclosure();
   return (
     <div
       className={`${styles['chat-container']} ${isOpen ? styles.active : ''}`}
@@ -31,6 +29,16 @@ export default function Chat() {
           onOpen();
         }}
       >
+        {sliderIsOpen && (
+          <Icon
+            as={MdKeyboardArrowLeft}
+            boxSize={6}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSliderClose();
+            }}
+          />
+        )}
         <span className="tracking-[1px] text-white">聊聊</span>
         <div
           className={`right-5 top-[-9px] select-none rounded-full bg-error p-1 text-xs 2xl:right-4 ${
@@ -53,13 +61,13 @@ export default function Chat() {
           boxSize={6}
           onClick={(e) => {
             e.stopPropagation();
-            console.log('inner');
+            onSliderClose();
             onClose();
           }}
         ></Icon>
       </div>
       <div className={styles['chat-content']}>
-        <Flex>
+        <div className="hidden w-full lg:flex">
           <ChatRoom w={{ base: 'full', lg: '400px' }} flexShrink={0} />
           <ScrollbarBox
             height={{ base: 'full', lg: 546 }}
@@ -67,7 +75,23 @@ export default function Chat() {
           >
             <ChatList></ChatList>
           </ScrollbarBox>
-        </Flex>
+        </div>
+        <div
+          className={`
+            flex w-full lg:hidden
+            ${styles['chat-content_mobile']}
+            ${sliderIsOpen ? styles.slider : ''}
+          `}
+        >
+          <ScrollbarBox
+            height={{ base: '100vh' }}
+            w={{ base: 'full' }}
+            flexShrink={0}
+          >
+            <ChatList onClick={onSlideOpen}></ChatList>
+          </ScrollbarBox>
+          <ChatRoom w={{ base: 'full' }} flexShrink={0} />
+        </div>
       </div>
     </div>
   );

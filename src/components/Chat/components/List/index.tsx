@@ -9,7 +9,11 @@ import { ChatItem } from './components';
 import { MdOutlineSearch } from 'react-icons/md';
 import styles from './styles.module.css';
 
-export function ChatList() {
+interface ChatListProps {
+  onClick?: () => void;
+}
+
+export function ChatList({ onClick }: ChatListProps) {
   return (
     <Flex
       px={3}
@@ -35,28 +39,28 @@ export function ChatList() {
         </InputGroup>
       </Flex>
       <ul className={styles['chat-list']}>
-        <li>
+        <li onClick={onClick}>
           <ChatItem></ChatItem>
         </li>
-        <li>
+        <li onClick={onClick}>
           <ChatItem></ChatItem>
         </li>
-        <li>
+        <li onClick={onClick}>
           <ChatItem></ChatItem>
         </li>
-        <li>
+        <li onClick={onClick}>
           <ChatItem></ChatItem>
         </li>
-        <li>
+        <li onClick={onClick}>
           <ChatItem></ChatItem>
         </li>
-        <li>
+        <li onClick={onClick}>
           <ChatItem></ChatItem>
         </li>
-        <li>
+        <li onClick={onClick}>
           <ChatItem></ChatItem>
         </li>
-        <li>
+        <li onClick={onClick}>
           <ChatItem></ChatItem>
         </li>
       </ul>

@@ -4,7 +4,15 @@ interface ChatItemProps extends BoxProps {}
 
 export function ChatItem(props: ChatItemProps) {
   return (
-    <Box py={3} {...props}>
+    <Box
+      py={3}
+      cursor="pointer"
+      transition="color 0.3s ease-in-out"
+      _hover={{
+        bg: 'gray.100'
+      }}
+      {...props}
+    >
       <Flex
         columnGap={2}
         justifyContent="flex-start"

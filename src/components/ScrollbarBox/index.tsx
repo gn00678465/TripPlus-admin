@@ -2,7 +2,7 @@ import { Box, BoxProps } from '@chakra-ui/react';
 
 interface ScrollbarBoxProps extends BoxProps {}
 
-const ScrollbarBox = ({ height, children }: ScrollbarBoxProps) => {
+const ScrollbarBox = ({ height, children, ...rest }: ScrollbarBoxProps) => {
   return (
     <Box
       height={height}
@@ -13,17 +13,18 @@ const ScrollbarBox = ({ height, children }: ScrollbarBoxProps) => {
           width: '12px'
         },
         '&::-webkit-scrollbar-track': {
-          'background-color': '#EAF8F8',
+          backgroundColor: '#EAF8F8',
           width: '12px'
         },
         '&::-webkit-scrollbar-thumb': {
-          '-webkit-border-radius': '8px',
-          'border-radius': '8px',
+          WebkitBorderRadius: '8px',
+          borderRadius: '8px',
           border: '4px solid transparent',
           background: 'white',
-          'background-clip': 'content-box'
+          backgroundClip: 'content-box'
         }
       }}
+      {...rest}
     >
       {children}
     </Box>

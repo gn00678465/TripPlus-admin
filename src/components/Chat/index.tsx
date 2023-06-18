@@ -1,16 +1,28 @@
-import { useDisclosure, Icon } from '@chakra-ui/react';
+import { useDisclosure, Icon, useMediaQuery } from '@chakra-ui/react';
 import { MdKeyboardArrowDown, MdKeyboardArrowLeft } from 'react-icons/md';
 import { ChatRoom, ChatList } from './components';
 import { ScrollbarBox } from '@/components';
 import styles from './styles.module.css';
+import { useEffect } from 'react';
 
 export default function Chat() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isLargerMd] = useMediaQuery('(min-width: 768px)');
+
   const {
     isOpen: sliderIsOpen,
     onOpen: onSlideOpen,
     onClose: onSliderClose
   } = useDisclosure();
+
+  useEffect(() => {
+    const body = document.body;
+    if (isOpen && !isLargerMd) {
+      body.style.overflow = 'hidden';
+    } else {
+      body.style.overflow = 'auto';
+    }
+  }, [isLargerMd, isOpen]);
   return (
     <div
       className={`${styles['chat-container']} ${isOpen ? styles.active : ''}`}
@@ -20,7 +32,7 @@ export default function Chat() {
           relative w-full cursor-pointer select-none bg-primary px-4 py-2 text-base text-white 2xl:py-3
           ${
             isOpen
-              ? 'flex items-center text-left lg:rounded-t-lg'
+              ? 'flex items-center text-left md:rounded-t-lg'
               : 'rounded-t-lg text-center'
           }
         `}
@@ -67,18 +79,18 @@ export default function Chat() {
         ></Icon>
       </div>
       <div className={styles['chat-content']}>
-        <div className="hidden w-full lg:flex">
-          <ChatRoom w={{ base: 'full', lg: '400px' }} flexShrink={0} />
+        <div className="hidden w-full md:flex">
+          <ChatRoom w={{ base: 'full', md: '400px' }} flexShrink={0} />
           <ScrollbarBox
-            height={{ base: 'full', lg: 546 }}
-            w={{ base: 'full', lg: 'auto' }}
+            height={{ base: 'full', md: 546 }}
+            w={{ base: 'full', md: 'auto' }}
           >
             <ChatList></ChatList>
           </ScrollbarBox>
         </div>
         <div
           className={`
-            flex w-full lg:hidden
+            flex w-full md:hidden
             ${styles['chat-content_mobile']}
             ${sliderIsOpen ? styles.slider : ''}
           `}

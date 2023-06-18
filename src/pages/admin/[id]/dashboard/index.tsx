@@ -1,5 +1,6 @@
 import Head from 'next/head';
-import { ReactElement, useRef, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { ReactElement, useRef, useEffect, useMemo } from 'react';
 import {
   Box,
   Flex,
@@ -16,6 +17,10 @@ import {
 import { AdminLayout, Chat } from '@/components';
 import { init, getInstanceByDom } from 'echarts';
 import type { EChartsOption, ECharts, SetOptionOpts } from 'echarts';
+import useSWR from 'swr';
+import { apiFetchDashboard } from '@/api';
+import { swrFetch } from '@/utils';
+import { categoryEnum } from '@/enums';
 
 const ChartsBlock = ({ ...rest }) => {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -188,6 +193,23 @@ const CounterBox = ({ count = 0, label, ...rest }: CounterBoxProps) => {
 };
 
 const ProjectDashboard = () => {
+  const router = useRouter();
+  const { id } = router.query;
+
+  const { data, mutate, isLoading } = useSWR(
+    id ? `/admin/project/${id}/content` : null,
+    () => swrFetch(apiFetchDashboard(id as string))
+  );
+
+  const category = useMemo(() => {
+    if (data?.data.projectCategory) {
+      return categoryEnum.find(
+        (item) => item.value === data.data.projectCategory
+      )?.label;
+    }
+    return '-';
+  }, [data]);
+
   return (
     <Box
       minH="calc(100vh)"
@@ -216,8 +238,7 @@ const ProjectDashboard = () => {
           募資
         </Tag>
         <h2 className="text-xl font-medium leading-6 tracking-[1px] text-gray-900 md:line-clamp-2 2xl:text-[28px] 2xl:font-bold 2xl:leading-8">
-          台灣世界展望會「籃海計畫」|
-          用籃球教育翻轉偏鄉孩子人生，追「球」夢想、站穩舞台！
+          {data?.data.projectTitle}
         </h2>
       </Flex>
       <Flex
@@ -235,48 +256,55 @@ const ProjectDashboard = () => {
               <CounterBox
                 flexGrow={{ base: 1, '2xl': 0 }}
                 flexBasis={{ base: 'calc(100% / 4)' }}
-                label="待付款訂單"
+                count={data?.data.targetAmount}
+                label="募資目標金額"
               ></CounterBox>
               <Divider orientation="vertical" />
               <CounterBox
                 flexGrow={{ base: 1, '2xl': 0 }}
                 flexBasis={{ base: 'calc(100% / 4)' }}
-                label="待處理訂單"
+                label="累計贊助金額"
+                count={data?.data.accumulatedAmount}
               ></CounterBox>
               <Divider orientation="vertical" />
               <CounterBox
                 flexGrow={{ base: 1, '2xl': 0 }}
                 flexBasis={{ base: 'calc(100% / 4)' }}
-                label="已處理訂單"
+                label="累計贊助人數"
+                count={data?.data.accumulatedSponsor}
               ></CounterBox>
               <Divider orientation="vertical" />
               <CounterBox
                 flexGrow={{ base: 1, '2xl': 0 }}
                 flexBasis={{ base: 'calc(100% / 4)' }}
-                label="待取消訂單"
+                label="活動追蹤人數"
+                count={data?.data.followerAmount}
               ></CounterBox>
             </div>
             <div className="flex h-[51px] xl:h-[72px]">
               <CounterBox
                 flexGrow={{ base: 1, '2xl': 0 }}
                 flexBasis={{ base: 'calc(100% / 3)', '2xl': 'calc(100% / 4)' }}
-                label="待退貨/退款訂單"
+                label="待付款訂單"
+                count={data?.data.unpaidOrder}
               ></CounterBox>
               <Divider orientation="vertical" />
               <CounterBox
                 flexGrow={{ base: 1, '2xl': 0 }}
                 flexBasis={{ base: 'calc(100% / 3)', '2xl': 'calc(100% / 4)' }}
-                label="已售完商品"
+                count={data?.data.paidOrder}
+                label="已付款訂單"
               ></CounterBox>
               <Divider orientation="vertical" />
               <CounterBox
                 flexGrow={{ base: 1, '2xl': 0 }}
                 flexBasis={{ base: 'calc(100% / 3)', '2xl': 'calc(100% / 4)' }}
-                label="待確認活動"
+                count={data?.data.shippedOrder}
+                label="已出貨訂單"
               ></CounterBox>
             </div>
           </DashboardBlock>
-          <DashboardBlock title="數據中心">
+          {/* <DashboardBlock title="數據中心">
             <Flex
               flexDirection={{ base: 'column', '2xl': 'row' }}
               mt={{ base: 6, '2xl': 12 }}
@@ -313,7 +341,7 @@ const ProjectDashboard = () => {
                 </GridItem>
               </Grid>
             </Flex>
-          </DashboardBlock>
+          </DashboardBlock> */}
         </Flex>
         <DashboardBlock
           title="募資進度"
@@ -333,7 +361,7 @@ const ProjectDashboard = () => {
               color="secondary.500"
               backgroundColor="secondary.100"
             >
-              社會計畫
+              {category}
             </Tag>
             <Text
               color="gray.900"
@@ -342,19 +370,18 @@ const ProjectDashboard = () => {
               lineHeight={{ base: '21px' }}
               fontSize={{ base: 'sm', xl: 'md' }}
             >
-              台灣世界展望會「籃海計畫」|
-              用籃球教育翻轉偏鄉孩子人生，追「球」夢想、站穩舞台！
+              {data?.data.projectTitle}
             </Text>
             <CircularProgress
               size="215px"
-              value={40}
+              value={data?.data.progressRate}
               color="primary.500"
               thickness="4px"
               my={{ base: 6 }}
             >
               <CircularProgressLabel className="space-y-1">
                 <Heading color="gray.900" fontSize={{ base: '36px' }}>
-                  40%
+                  {data?.data.progressRate}%
                 </Heading>
                 <Text color="gray.500" fontSize={{ base: 'sm' }}>
                   目前已集資
@@ -363,8 +390,17 @@ const ProjectDashboard = () => {
             </CircularProgress>
             <Divider mb={{ base: 4 }} />
             <Text fontSize={{ base: 'md', md: 'lg' }} color="gray.900">
-              倒數{' '}
-              <span className="mx-1 text-lg font-medium md:text-xl">10</span>天
+              {data?.data.countDownDays === 0
+                ? '已結束'
+                : `
+              倒數
+              ${(
+                <span className="mx-1 text-lg font-medium md:text-xl">
+                  {data?.data.countDownDays}
+                </span>
+              )}
+              天
+              `}
             </Text>
           </Flex>
         </DashboardBlock>
@@ -397,7 +433,7 @@ ProjectDashboard.getLayout = function (page: ReactElement) {
   return (
     <AdminLayout>
       <Head>
-        <title>Dashboard</title>
+        <title>Dashboard-TripPlus+</title>
       </Head>
       {page}
     </AdminLayout>

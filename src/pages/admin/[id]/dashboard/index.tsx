@@ -197,13 +197,14 @@ const ProjectDashboard = () => {
   const toast = useToast();
   const { id } = router.query;
 
-  const { data, mutate, isLoading } = useSWR(
+  const { data, mutate, isLoading, error } = useSWR(
     id ? `/admin/project/${id}/content` : null,
     () => swrFetch(apiFetchDashboard(id as string)),
     {
       revalidateOnFocus: false,
       onError(err: Service.FailedResult, key, config) {
         if (err.message === '路由資訊錯誤') {
+          router.push('/admin/projects');
           toast({
             position: 'top',
             title: '登入錯誤!',
@@ -212,7 +213,6 @@ const ProjectDashboard = () => {
             duration: 5000,
             isClosable: true
           });
-          router.push('/admin/projects');
         }
       }
     }

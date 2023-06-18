@@ -11,8 +11,8 @@ import {
   CircularProgress,
   CircularProgressLabel,
   Divider,
-  Grid,
-  GridItem
+  Skeleton,
+  useToast
 } from '@chakra-ui/react';
 import { AdminLayout, Chat } from '@/components';
 import { init, getInstanceByDom } from 'echarts';
@@ -194,11 +194,27 @@ const CounterBox = ({ count = 0, label, ...rest }: CounterBoxProps) => {
 
 const ProjectDashboard = () => {
   const router = useRouter();
+  const toast = useToast();
   const { id } = router.query;
 
   const { data, mutate, isLoading } = useSWR(
     id ? `/admin/project/${id}/content` : null,
-    () => swrFetch(apiFetchDashboard(id as string))
+    () => swrFetch(apiFetchDashboard(id as string)),
+    {
+      onError(err: Service.FailedResult, key, config) {
+        if (err.message === '路由資訊錯誤') {
+          toast({
+            position: 'top',
+            title: '登入錯誤!',
+            description: '此專案不存在',
+            status: 'error',
+            duration: 5000,
+            isClosable: true
+          });
+          router.push('/admin/projects');
+        }
+      }
+    }
   );
 
   const category = useMemo(() => {
@@ -251,59 +267,71 @@ const ProjectDashboard = () => {
           flexDirection={{ base: 'column' }}
           minW={{ base: 'full', '2xl': '910px' }}
         >
-          <DashboardBlock title="進行中的活動">
-            <div className="my-6 flex h-[51px] xl:h-[72px]">
-              <CounterBox
-                flexGrow={{ base: 1, '2xl': 0 }}
-                flexBasis={{ base: 'calc(100% / 4)' }}
-                count={data?.data.targetAmount}
-                label="募資目標金額"
-              ></CounterBox>
-              <Divider orientation="vertical" />
-              <CounterBox
-                flexGrow={{ base: 1, '2xl': 0 }}
-                flexBasis={{ base: 'calc(100% / 4)' }}
-                label="累計贊助金額"
-                count={data?.data.accumulatedAmount}
-              ></CounterBox>
-              <Divider orientation="vertical" />
-              <CounterBox
-                flexGrow={{ base: 1, '2xl': 0 }}
-                flexBasis={{ base: 'calc(100% / 4)' }}
-                label="累計贊助人數"
-                count={data?.data.accumulatedSponsor}
-              ></CounterBox>
-              <Divider orientation="vertical" />
-              <CounterBox
-                flexGrow={{ base: 1, '2xl': 0 }}
-                flexBasis={{ base: 'calc(100% / 4)' }}
-                label="活動追蹤人數"
-                count={data?.data.followerAmount}
-              ></CounterBox>
-            </div>
-            <div className="flex h-[51px] xl:h-[72px]">
-              <CounterBox
-                flexGrow={{ base: 1, '2xl': 0 }}
-                flexBasis={{ base: 'calc(100% / 3)', '2xl': 'calc(100% / 4)' }}
-                label="待付款訂單"
-                count={data?.data.unpaidOrder}
-              ></CounterBox>
-              <Divider orientation="vertical" />
-              <CounterBox
-                flexGrow={{ base: 1, '2xl': 0 }}
-                flexBasis={{ base: 'calc(100% / 3)', '2xl': 'calc(100% / 4)' }}
-                count={data?.data.paidOrder}
-                label="已付款訂單"
-              ></CounterBox>
-              <Divider orientation="vertical" />
-              <CounterBox
-                flexGrow={{ base: 1, '2xl': 0 }}
-                flexBasis={{ base: 'calc(100% / 3)', '2xl': 'calc(100% / 4)' }}
-                count={data?.data.shippedOrder}
-                label="已出貨訂單"
-              ></CounterBox>
-            </div>
-          </DashboardBlock>
+          <Skeleton isLoaded={!isLoading}>
+            <DashboardBlock title="進行中的活動">
+              <div className="my-6 flex h-[51px] xl:h-[72px]">
+                <CounterBox
+                  flexGrow={{ base: 1, '2xl': 0 }}
+                  flexBasis={{ base: 'calc(100% / 4)' }}
+                  count={data?.data.targetAmount}
+                  label="募資目標金額"
+                ></CounterBox>
+                <Divider orientation="vertical" />
+                <CounterBox
+                  flexGrow={{ base: 1, '2xl': 0 }}
+                  flexBasis={{ base: 'calc(100% / 4)' }}
+                  label="累計贊助金額"
+                  count={data?.data.accumulatedAmount}
+                ></CounterBox>
+                <Divider orientation="vertical" />
+                <CounterBox
+                  flexGrow={{ base: 1, '2xl': 0 }}
+                  flexBasis={{ base: 'calc(100% / 4)' }}
+                  label="累計贊助人數"
+                  count={data?.data.accumulatedSponsor}
+                ></CounterBox>
+                <Divider orientation="vertical" />
+                <CounterBox
+                  flexGrow={{ base: 1, '2xl': 0 }}
+                  flexBasis={{ base: 'calc(100% / 4)' }}
+                  label="活動追蹤人數"
+                  count={data?.data.followerAmount}
+                ></CounterBox>
+              </div>
+              <div className="flex h-[51px] xl:h-[72px]">
+                <CounterBox
+                  flexGrow={{ base: 1, '2xl': 0 }}
+                  flexBasis={{
+                    base: 'calc(100% / 3)',
+                    '2xl': 'calc(100% / 4)'
+                  }}
+                  label="待付款訂單"
+                  count={data?.data.unpaidOrder}
+                ></CounterBox>
+                <Divider orientation="vertical" />
+                <CounterBox
+                  flexGrow={{ base: 1, '2xl': 0 }}
+                  flexBasis={{
+                    base: 'calc(100% / 3)',
+                    '2xl': 'calc(100% / 4)'
+                  }}
+                  count={data?.data.paidOrder}
+                  label="已付款訂單"
+                ></CounterBox>
+                <Divider orientation="vertical" />
+                <CounterBox
+                  flexGrow={{ base: 1, '2xl': 0 }}
+                  flexBasis={{
+                    base: 'calc(100% / 3)',
+                    '2xl': 'calc(100% / 4)'
+                  }}
+                  count={data?.data.shippedOrder}
+                  label="已出貨訂單"
+                ></CounterBox>
+              </div>
+            </DashboardBlock>
+          </Skeleton>
+
           {/* <DashboardBlock title="數據中心">
             <Flex
               flexDirection={{ base: 'column', '2xl': 'row' }}
@@ -343,56 +371,57 @@ const ProjectDashboard = () => {
             </Flex>
           </DashboardBlock> */}
         </Flex>
-        <DashboardBlock
-          title="募資進度"
-          alignSelf={{ '2xl': 'flex-start' }}
-          pb={{ base: 6 }}
-        >
-          <Flex flexDirection="column" alignItems="center">
-            <Tag
-              flexShrink={0}
-              alignSelf="flex-start"
-              fontSize={{ base: 'xs', xl: 'sm' }}
-              px={{ base: 2 }}
-              py={{ base: 1 }}
-              mt={{ base: 4 }}
-              mb={{ base: 2 }}
-              variant="solid"
-              color="secondary.500"
-              backgroundColor="secondary.100"
-            >
-              {category}
-            </Tag>
-            <Text
-              color="gray.900"
-              fontWeight={{ base: 400 }}
-              letterSpacing={1}
-              lineHeight={{ base: '21px' }}
-              fontSize={{ base: 'sm', xl: 'md' }}
-            >
-              {data?.data.projectTitle}
-            </Text>
-            <CircularProgress
-              size="215px"
-              value={data?.data.progressRate}
-              color="primary.500"
-              thickness="4px"
-              my={{ base: 6 }}
-            >
-              <CircularProgressLabel className="space-y-1">
-                <Heading color="gray.900" fontSize={{ base: '36px' }}>
-                  {data?.data.progressRate}%
-                </Heading>
-                <Text color="gray.500" fontSize={{ base: 'sm' }}>
-                  目前已集資
-                </Text>
-              </CircularProgressLabel>
-            </CircularProgress>
-            <Divider mb={{ base: 4 }} />
-            <Text fontSize={{ base: 'md', md: 'lg' }} color="gray.900">
-              {data?.data.countDownDays === 0
-                ? '已結束'
-                : `
+        <Skeleton isLoaded={!isLoading}>
+          <DashboardBlock
+            title="募資進度"
+            alignSelf={{ '2xl': 'flex-start' }}
+            pb={{ base: 6 }}
+          >
+            <Flex flexDirection="column" alignItems="center">
+              <Tag
+                flexShrink={0}
+                alignSelf="flex-start"
+                fontSize={{ base: 'xs', xl: 'sm' }}
+                px={{ base: 2 }}
+                py={{ base: 1 }}
+                mt={{ base: 4 }}
+                mb={{ base: 2 }}
+                variant="solid"
+                color="secondary.500"
+                backgroundColor="secondary.100"
+              >
+                {category}
+              </Tag>
+              <Text
+                color="gray.900"
+                fontWeight={{ base: 400 }}
+                letterSpacing={1}
+                lineHeight={{ base: '21px' }}
+                fontSize={{ base: 'sm', xl: 'md' }}
+              >
+                {data?.data.projectTitle}
+              </Text>
+              <CircularProgress
+                size="215px"
+                value={data?.data.progressRate}
+                color="primary.500"
+                thickness="4px"
+                my={{ base: 6 }}
+              >
+                <CircularProgressLabel className="space-y-1">
+                  <Heading color="gray.900" fontSize={{ base: '36px' }}>
+                    {data?.data.progressRate}%
+                  </Heading>
+                  <Text color="gray.500" fontSize={{ base: 'sm' }}>
+                    目前已集資
+                  </Text>
+                </CircularProgressLabel>
+              </CircularProgress>
+              <Divider mb={{ base: 4 }} />
+              <Text fontSize={{ base: 'md', md: 'lg' }} color="gray.900">
+                {data?.data.countDownDays === 0
+                  ? '已結束'
+                  : `
               倒數
               ${(
                 <span className="mx-1 text-lg font-medium md:text-xl">
@@ -401,9 +430,10 @@ const ProjectDashboard = () => {
               )}
               天
               `}
-            </Text>
-          </Flex>
-        </DashboardBlock>
+              </Text>
+            </Flex>
+          </DashboardBlock>
+        </Skeleton>
       </Flex>
       <Text
         className="hidden 2xl:block"

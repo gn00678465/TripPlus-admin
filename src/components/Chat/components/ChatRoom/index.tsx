@@ -1,6 +1,6 @@
 import { Text, Textarea, Icon, Flex, Box, BoxProps } from '@chakra-ui/react';
 import { BsSend } from 'react-icons/bs';
-import { CiImageOn } from 'react-icons/Ci';
+import { CiImageOn } from 'react-icons/ci';
 import { SlEmotsmile, SlSocialYoutube } from 'react-icons/sl';
 import { ImageFallback } from '@/components';
 import NoImage from '@/assets/images/no-image.png';

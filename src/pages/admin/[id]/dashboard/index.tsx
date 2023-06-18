@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { ReactElement, useRef, useEffect, useMemo } from 'react';
+import { ReactElement, useRef, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Flex,
@@ -196,12 +196,16 @@ const ProjectDashboard = () => {
   const router = useRouter();
   const toast = useToast();
   const { id } = router.query;
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { data, mutate, isLoading, error } = useSWR(
+  const { data, mutate, error } = useSWR(
     id ? `/admin/project/${id}/content` : null,
     () => swrFetch(apiFetchDashboard(id as string)),
     {
       revalidateOnFocus: false,
+      onSuccess(data, key, config) {
+        setIsLoading(false);
+      },
       onError(err: Service.FailedResult, key, config) {
         if (err.message === '路由資訊錯誤') {
           router.push('/admin/projects');
@@ -213,6 +217,7 @@ const ProjectDashboard = () => {
             duration: 5000,
             isClosable: true
           });
+          setIsLoading(false);
         }
       }
     }

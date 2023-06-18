@@ -379,14 +379,15 @@ const ProjectDashboard = () => {
       >
         Copyright © 2023 TripPlus. All rights reserved.
       </Text>
-      <Box
+      {/* <Box
         pos={{ base: 'fixed', '2xl': 'absolute' }}
         bottom={0}
         left={{ base: 3, md: 'unset' }}
         right={{ base: 3, '2xl': 20 }}
       >
         <Chat />
-      </Box>
+      </Box> */}
+      <Chat />
     </Box>
   );
 };

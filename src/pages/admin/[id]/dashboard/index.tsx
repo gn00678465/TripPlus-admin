@@ -201,6 +201,7 @@ const ProjectDashboard = () => {
     id ? `/admin/project/${id}/content` : null,
     () => swrFetch(apiFetchDashboard(id as string)),
     {
+      revalidateOnFocus: false,
       onError(err: Service.FailedResult, key, config) {
         if (err.message === '路由資訊錯誤') {
           toast({
@@ -418,19 +419,19 @@ const ProjectDashboard = () => {
                 </CircularProgressLabel>
               </CircularProgress>
               <Divider mb={{ base: 4 }} />
-              <Text fontSize={{ base: 'md', md: 'lg' }} color="gray.900">
-                {data?.data.countDownDays === 0
-                  ? '已結束'
-                  : `
-              倒數
-              ${(
-                <span className="mx-1 text-lg font-medium md:text-xl">
-                  {data?.data.countDownDays}
-                </span>
+              {data?.data.countDownDays === 0 ? (
+                <Text fontSize={{ base: 'md', md: 'lg' }} color="gray.900">
+                  已結束
+                </Text>
+              ) : (
+                <Text fontSize={{ base: 'md', md: 'lg' }} color="gray.900">
+                  倒數
+                  <span className="mx-1 text-lg font-medium md:text-xl">
+                    {data?.data.countDownDays}
+                  </span>
+                  天
+                </Text>
               )}
-              天
-              `}
-              </Text>
             </Flex>
           </DashboardBlock>
         </Skeleton>

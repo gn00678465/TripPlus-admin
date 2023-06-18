@@ -377,7 +377,7 @@ const ProjectDashboard = () => {
             </Flex>
           </DashboardBlock> */}
         </Flex>
-        <Skeleton isLoaded={!isLoading}>
+        <Skeleton flexGrow={1} isLoaded={!isLoading}>
           <DashboardBlock
             title="募資進度"
             alignSelf={{ '2xl': 'flex-start' }}
@@ -404,6 +404,7 @@ const ProjectDashboard = () => {
                 letterSpacing={1}
                 lineHeight={{ base: '21px' }}
                 fontSize={{ base: 'sm', xl: 'md' }}
+                alignSelf="flex-start"
               >
                 {data?.data.projectTitle}
               </Text>

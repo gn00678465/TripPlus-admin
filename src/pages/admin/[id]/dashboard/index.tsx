@@ -171,7 +171,12 @@ interface CounterBoxProps extends BoxProps {
 
 const CounterBox = ({ count = 0, label, ...rest }: CounterBoxProps) => {
   return (
-    <Box flexGrow={{ base: 1 }} textAlign="center" {...rest}>
+    <Box
+      flexGrow={{ base: 1, '2xl': 0 }}
+      textAlign="center"
+      h={{ base: '51px', xl: '72px' }}
+      {...rest}
+    >
       <Text
         color="secondary.500"
         fontSize={{ base: '2xl', xl: '4xl' }}
@@ -275,61 +280,71 @@ const ProjectDashboard = () => {
         >
           <Skeleton isLoaded={!isLoading}>
             <DashboardBlock title="進行中的活動">
-              <div className="my-6 flex h-[51px] xl:h-[72px]">
+              <div className="my-6 flex flex-wrap gap-y-6">
                 <CounterBox
-                  flexGrow={{ base: 1, '2xl': 0 }}
-                  flexBasis={{ base: 'calc(100% / 4)' }}
+                  flexBasis={{
+                    base: 'calc(100% / 3)',
+                    '2xl': 'calc(100% / 4)'
+                  }}
+                  borderRightWidth={{ base: '1px' }}
+                  borderStyle={{ base: 'solid' }}
+                  borderColor={{ base: 'gary.200' }}
                   count={data?.data.targetAmount}
                   label="募資目標金額"
                 ></CounterBox>
-                <Divider orientation="vertical" />
                 <CounterBox
-                  flexGrow={{ base: 1, '2xl': 0 }}
-                  flexBasis={{ base: 'calc(100% / 4)' }}
+                  flexBasis={{
+                    base: 'calc(100% / 3)',
+                    '2xl': 'calc(100% / 4)'
+                  }}
+                  borderRightWidth={{ base: '1px' }}
+                  borderStyle={{ base: 'solid' }}
+                  borderColor={{ base: 'gary.200' }}
                   label="累計贊助金額"
                   count={data?.data.accumulatedAmount}
                 ></CounterBox>
-                <Divider orientation="vertical" />
                 <CounterBox
-                  flexGrow={{ base: 1, '2xl': 0 }}
-                  flexBasis={{ base: 'calc(100% / 4)' }}
+                  flexBasis={{
+                    base: 'calc(100% / 3)',
+                    '2xl': 'calc(100% / 4)'
+                  }}
                   label="累計贊助人數"
+                  borderRightWidth={{ '2xl': '1px' }}
+                  borderStyle={{ '2xl': 'solid' }}
+                  borderColor={{ '2xl': 'gary.200' }}
                   count={data?.data.accumulatedSponsor}
                 ></CounterBox>
-                <Divider orientation="vertical" />
                 <CounterBox
-                  flexGrow={{ base: 1, '2xl': 0 }}
                   flexBasis={{ base: 'calc(100% / 4)' }}
                   label="活動追蹤人數"
+                  borderRightWidth={{ base: '1px', '2xl': 0 }}
+                  borderStyle={{ base: 'solid' }}
+                  borderColor={{ base: 'gary.200' }}
                   count={data?.data.followerAmount}
                 ></CounterBox>
-              </div>
-              <div className="flex h-[51px] xl:h-[72px]">
                 <CounterBox
-                  flexGrow={{ base: 1, '2xl': 0 }}
                   flexBasis={{
-                    base: 'calc(100% / 3)',
-                    '2xl': 'calc(100% / 4)'
+                    base: 'calc(100% / 4)'
                   }}
                   label="待付款訂單"
+                  borderRightWidth={{ base: '1px' }}
+                  borderStyle={{ base: 'solid' }}
+                  borderColor={{ base: 'gary.200' }}
                   count={data?.data.unpaidOrder}
                 ></CounterBox>
-                <Divider orientation="vertical" />
                 <CounterBox
-                  flexGrow={{ base: 1, '2xl': 0 }}
                   flexBasis={{
-                    base: 'calc(100% / 3)',
-                    '2xl': 'calc(100% / 4)'
+                    base: 'calc(100% / 4)'
                   }}
+                  borderRightWidth={{ base: '1px' }}
+                  borderStyle={{ base: 'solid' }}
+                  borderColor={{ base: 'gary.200' }}
                   count={data?.data.paidOrder}
                   label="已付款訂單"
                 ></CounterBox>
-                <Divider orientation="vertical" />
                 <CounterBox
-                  flexGrow={{ base: 1, '2xl': 0 }}
                   flexBasis={{
-                    base: 'calc(100% / 3)',
-                    '2xl': 'calc(100% / 4)'
+                    base: 'calc(100% / 4)'
                   }}
                   count={data?.data.shippedOrder}
                   label="已出貨訂單"

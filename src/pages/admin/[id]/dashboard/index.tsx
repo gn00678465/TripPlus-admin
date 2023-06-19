@@ -15,81 +15,81 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { AdminLayout, Chat } from '@/components';
-import { init, getInstanceByDom } from 'echarts';
-import type { EChartsOption, ECharts, SetOptionOpts } from 'echarts';
+// import { init, getInstanceByDom } from 'echarts';
+// import type { EChartsOption, ECharts, SetOptionOpts } from 'echarts';
 import useSWR from 'swr';
 import { apiFetchDashboard } from '@/api';
-import { swrFetch } from '@/utils';
+import { swrFetch, numberWithCommas } from '@/utils';
 import { categoryEnum } from '@/enums';
 
-const ChartsBlock = ({ ...rest }) => {
-  const chartRef = useRef<HTMLDivElement>(null);
+// const ChartsBlock = ({ ...rest }) => {
+//   const chartRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    let chart: ECharts | undefined;
-    if (chartRef.current !== null) {
-      chart = init(chartRef.current);
-    }
+//   useEffect(() => {
+//     let chart: ECharts | undefined;
+//     if (chartRef.current !== null) {
+//       chart = init(chartRef.current);
+//     }
 
-    function resizeChart() {
-      chart?.resize();
-    }
-    window.addEventListener('resize', resizeChart);
-    return () => {
-      chart?.dispose();
-      window.removeEventListener('resize', resizeChart);
-    };
-  }, []);
+//     function resizeChart() {
+//       chart?.resize();
+//     }
+//     window.addEventListener('resize', resizeChart);
+//     return () => {
+//       chart?.dispose();
+//       window.removeEventListener('resize', resizeChart);
+//     };
+//   }, []);
 
-  useEffect(() => {
-    const option: EChartsOption = {
-      grid: {
-        top: '24px',
-        bottom: '24px',
-        right: '4px'
-      },
-      xAxis: {
-        type: 'category',
-        data: ['Landing', 'Site', 'App', 'Board', 'Bill'],
-        axisLabel: {
-          color: '#1A1A1A',
-          interval: 1
-        }
-      },
-      yAxis: {
-        type: 'value',
-        min: 0,
-        max: 100,
-        interval: 25
-      },
-      series: [
-        {
-          data: [30, 40, 50, 60, 70],
-          type: 'bar',
-          barWidth: 16,
-          label: {
-            show: true,
-            position: 'top',
-            valueAnimation: true,
-            color: '#1A1A1A'
-          }
-        }
-      ],
-      color: ['#00BDBD', '#00C2FF']
-    };
-    // Update chart
-    if (chartRef.current !== null) {
-      const chart = getInstanceByDom(chartRef.current);
-      chart?.setOption(option);
-    }
-  }, []);
+//   useEffect(() => {
+//     const option: EChartsOption = {
+//       grid: {
+//         top: '24px',
+//         bottom: '24px',
+//         right: '4px'
+//       },
+//       xAxis: {
+//         type: 'category',
+//         data: ['Landing', 'Site', 'App', 'Board', 'Bill'],
+//         axisLabel: {
+//           color: '#1A1A1A',
+//           interval: 1
+//         }
+//       },
+//       yAxis: {
+//         type: 'value',
+//         min: 0,
+//         max: 100,
+//         interval: 25
+//       },
+//       series: [
+//         {
+//           data: [30, 40, 50, 60, 70],
+//           type: 'bar',
+//           barWidth: 16,
+//           label: {
+//             show: true,
+//             position: 'top',
+//             valueAnimation: true,
+//             color: '#1A1A1A'
+//           }
+//         }
+//       ],
+//       color: ['#00BDBD', '#00C2FF']
+//     };
+//     // Update chart
+//     if (chartRef.current !== null) {
+//       const chart = getInstanceByDom(chartRef.current);
+//       chart?.setOption(option);
+//     }
+//   }, []);
 
-  return (
-    <Box {...rest}>
-      <div ref={chartRef} style={{ width: '100%', height: '100%' }}></div>
-    </Box>
-  );
-};
+//   return (
+//     <Box {...rest}>
+//       <div ref={chartRef} style={{ width: '100%', height: '100%' }}></div>
+//     </Box>
+//   );
+// };
 
 interface DashboardBlockProps extends BoxProps {
   title: string;
@@ -178,7 +178,7 @@ const CounterBox = ({ count = 0, label, ...rest }: CounterBoxProps) => {
         mb={{ base: 1, xl: 2 }}
         lineHeight={{ base: '28px', xl: '44px' }}
       >
-        {count}
+        {numberWithCommas(count)}
       </Text>
       <Text
         color="gray.500"
@@ -224,7 +224,7 @@ const ProjectDashboard = () => {
   );
 
   const category = useMemo(() => {
-    if (data?.data.projectCategory) {
+    if (data) {
       return categoryEnum.find(
         (item) => item.value === data.data.projectCategory
       )?.label;

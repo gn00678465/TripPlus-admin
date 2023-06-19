@@ -14,3 +14,7 @@ export function currency(
 export function currencyTWD(number: number) {
   return currency(number, 'zh-TW', 'TWD');
 }
+
+export function numberWithCommas(x: number) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}

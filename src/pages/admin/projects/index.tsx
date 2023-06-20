@@ -317,7 +317,7 @@ const AdminProjects = () => {
   return (
     <>
       <Head>
-        <title>專案列表</title>
+        <title>專案列表-TripPlus+</title>
       </Head>
       <Flex h="full" w="full" flexDirection="column">
         <div

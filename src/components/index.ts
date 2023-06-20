@@ -8,3 +8,4 @@ export { default as ScrollbarBox } from './ScrollbarBox';
 export * from './Chakra';
 export * from './Pagination';
 export * from './Table';
+export * from './Modal';

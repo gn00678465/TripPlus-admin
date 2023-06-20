@@ -152,7 +152,6 @@ const AdminProjects = () => {
   const { data: projectListData, isLoading } = useSwr(
     ['/admin/projects', qs],
     async ([key, qs]) => {
-      console.log(qs);
       const [err, data] = await safeAwait(apiFetchProjects(qs));
       return new Promise<ApiProject.ProjectList>((resolve, reject) => {
         if (data) {

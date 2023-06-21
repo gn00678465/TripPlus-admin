@@ -1,9 +1,14 @@
+import { useRouter } from 'next/router';
 import { useDisclosure, Icon, useMediaQuery } from '@chakra-ui/react';
 import { MdKeyboardArrowDown, MdKeyboardArrowLeft } from 'react-icons/md';
 import { ChatRoom, ChatList } from './components';
 import { ScrollbarBox } from '@/components';
 import styles from './styles.module.css';
 import { useEffect } from 'react';
+import { socket } from '@/config';
+import { apiFetchMessages } from '@/api';
+import useSWR from 'swr';
+import { swrFetch } from '@/utils';
 
 export default function Chat() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -14,6 +19,24 @@ export default function Chat() {
     onOpen: onSlideOpen,
     onClose: onSliderClose
   } = useDisclosure();
+
+  const router = useRouter();
+  const { id } = router.query;
+
+  const { data, mutate, isLoading } = useSWR(
+    id ? `/admin/project/messages` : null,
+    () => swrFetch(swrFetch(apiFetchMessages(id as string))),
+    {
+      revalidateOnFocus: false,
+      onSuccess(data, key, config) {
+        console.log(data);
+      }
+    }
+  );
+
+  socket.on('connect', () => {
+    console.log(socket.id);
+  });
 
   useEffect(() => {
     const body = document.body;

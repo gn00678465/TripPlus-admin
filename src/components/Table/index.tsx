@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   useReactTable,
   flexRender,
@@ -31,6 +31,8 @@ export interface DataTableProps<T extends object> extends TableContainerProps {
     pageCount: number;
   };
   loading?: boolean;
+  manualSorting?: boolean;
+  onSortingChange?: (arg: SortingState) => {};
 }
 
 export function DataTable<T extends object>({
@@ -38,7 +40,9 @@ export function DataTable<T extends object>({
   columns,
   height,
   pagination,
+  onSortingChange,
   loading = false,
+  manualSorting = false,
   ...rest
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -57,7 +61,8 @@ export function DataTable<T extends object>({
       },
       sorting
     },
-    manualPagination: true
+    manualPagination: true,
+    manualSorting
   });
 
   function renderEmpty() {

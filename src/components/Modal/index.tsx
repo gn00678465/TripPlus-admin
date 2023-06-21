@@ -10,19 +10,34 @@ import {
 } from '@chakra-ui/react';
 import { ReactElement } from 'react';
 
-interface ModalContainerProps {
+export interface ModalContainerProps {
   show: boolean;
   title: string;
   children: string | ReactElement;
   onClose: () => void;
+  okText?: string;
+  cancelText?: string;
+  footerHidden?: boolean;
+  footer?: string | number | JSX.Element | JSX.Element[] | (() => JSX.Element);
 }
 
 export const ModalContainer = ({
   show = false,
   title,
   children,
-  onClose
+  onClose,
+  footer,
+  okText = 'Ok',
+  cancelText = 'Cancel',
+  footerHidden = false
 }: ModalContainerProps) => {
+  function renderFooter(footer: ModalContainerProps['footer']) {
+    if (typeof footer === 'function') {
+      return footer();
+    }
+    return footer;
+  }
+
   return (
     <Modal isOpen={show} onClose={onClose}>
       <ModalOverlay />
@@ -30,12 +45,18 @@ export const ModalContainer = ({
         <ModalHeader>{title}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>{children}</ModalBody>
-        <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose}>
-            取消
-          </Button>
-          <Button colorScheme="primary">搜尋</Button>
-        </ModalFooter>
+        {!footerHidden && (
+          <ModalFooter>
+            {(footer && renderFooter(footer)) || (
+              <>
+                <Button variant="ghost" mr={3} onClick={onClose}>
+                  {cancelText}
+                </Button>
+                <Button colorScheme="primary">{okText}</Button>
+              </>
+            )}
+          </ModalFooter>
+        )}
       </ModalContent>
     </Modal>
   );

@@ -4,7 +4,7 @@ import { useState, useRef, useMemo } from 'react';
 import { useImmerReducer } from 'use-immer';
 import { debounce } from 'lodash-es';
 import type { ReactElement } from 'react';
-import { AdminLayout, ModalContainer } from '@/components';
+import { AdminLayout, ModalContainer, ModalContainerProps } from '@/components';
 import {
   Heading,
   InputGroup,
@@ -13,14 +13,15 @@ import {
   Card,
   CardBody,
   Icon,
-  Tag,
   IconButton,
   Flex,
   Box,
   useDisclosure,
   FormControl,
   FormLabel,
-  Text
+  Text,
+  Select,
+  Button
 } from '@chakra-ui/react';
 import { useMediaQuery } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -31,35 +32,74 @@ import { currencyTWD, swrFetch, utc2Local } from '@/utils';
 import { useElementSize, usePagination, useWindowSize } from '@/hooks';
 import useSwr from 'swr';
 import { apiFetchOrders } from '@/api';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { shipmentEnum, paymentStatusEnum } from '@/enums';
 
-const SearchForm = () => {
-  const { register } = useForm();
+interface SearchInput {
+  status?: number;
+  paymentStatus?: number;
+}
+
+const SearchFormModal = ({
+  show,
+  onClose
+}: Pick<ModalContainerProps, 'show' | 'onClose'>) => {
+  const { register, handleSubmit } = useForm<SearchInput>();
+
+  const onSubmit: SubmitHandler<SearchInput> = (data) => console.log(data);
 
   return (
-    <Box as="form" className="space-y-2">
-      <FormControl>
-        <FormLabel>訂單狀態</FormLabel>
-        <Input type="email" />
-      </FormControl>
-      <FormControl>
-        <FormLabel>付款狀態</FormLabel>
-        <Input type="email" />
-      </FormControl>
-      <FormControl>
-        <FormLabel>訂購日</FormLabel>
-        <Input type="email" />
-      </FormControl>
-      <FormControl>
-        <FormLabel>出貨日</FormLabel>
-        <Input type="email" />
-      </FormControl>
-    </Box>
+    <ModalContainer
+      show={show}
+      title="搜尋訂單"
+      onClose={onClose}
+      footerHidden={true}
+    >
+      <Box as="form" className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
+        <FormControl>
+          <FormLabel>訂單狀態</FormLabel>
+          <Select placeholder="全部" {...register('status')}>
+            {shipmentEnum.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl>
+          <FormLabel>付款狀態</FormLabel>
+          <Select placeholder="全部" {...register('paymentStatus')}>
+            {paymentStatusEnum.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl>
+          <FormLabel>訂購日</FormLabel>
+          <Input type="email" />
+        </FormControl>
+        <FormControl>
+          <FormLabel>出貨日</FormLabel>
+          <Input type="email" />
+        </FormControl>
+        <div className="mt-1 flex items-center gap-x-3 py-2">
+          <Button variant="ghost" onClick={onClose}>
+            取消
+          </Button>
+          <Button type="submit" colorScheme="primary">
+            搜尋
+          </Button>
+        </div>
+      </Box>
+    </ModalContainer>
   );
 };
 
 const AdminOrder = () => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const headerRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
@@ -93,11 +133,10 @@ const AdminOrder = () => {
   interface QueryState {
     query?: null | string;
     status?: null | string;
-    type?: null | string;
   }
 
   interface QueryAction {
-    type: 'setQuery' | 'setStatus' | 'setType';
+    type: 'setQuery' | 'setStatus';
     payload: string;
   }
 
@@ -118,13 +157,6 @@ const AdminOrder = () => {
           } else {
             delete draft.status;
           }
-        },
-        setType: (payload: string) => {
-          if (payload) {
-            draft.type = payload;
-          } else {
-            delete draft.type;
-          }
         }
       };
 
@@ -144,11 +176,12 @@ const AdminOrder = () => {
   }, [pagination, query]);
 
   // query
-  const { data: orderListData, isLoading } = useSwr(
-    id ? `/admin/project/${id}/orderList` : null,
+  const { data: orderListData } = useSwr(
+    id ? `/admin/project/${id}/orderList?${qs}` : null,
     () => swrFetch(apiFetchOrders(id as string)),
     {
       onSuccess(data, key, config) {
+        setIsLoading(false);
         setTotal(data.data.total);
       }
     }
@@ -156,7 +189,7 @@ const AdminOrder = () => {
 
   const tableHeight = useMemo(() => {
     if (isLargeDesktop) {
-      return windowSize.height - headerH - toolbarH - paginationH - 64;
+      return windowSize.height - headerH - toolbarH - paginationH;
     }
     return 'auto';
   }, [windowSize, headerH, toolbarH, paginationH, isLargeDesktop]);
@@ -343,17 +376,19 @@ const AdminOrder = () => {
           px={{ base: 3, md: 12 }}
           py={{ base: 3 }}
           backgroundColor="gray.100"
+          h="full"
         >
           <Card h="full">
             <CardBody h="full" position="relative">
               <DataTable
-                h="auto"
-                maxH={tableHeight}
+                h="full"
+                minH={tableHeight}
                 columns={columns}
                 data={orderListData?.data.items || []}
                 pagination={pagination}
                 loading={isLoading}
-              ></DataTable>
+                manualSorting={true}
+              />
               <div
                 ref={paginationRef}
                 className="absolute inset-x-0 bottom-0 flex w-full flex-col items-center justify-center gap-y-2 px-5 pb-5 pt-4 md:flex-row md:justify-between"
@@ -378,9 +413,7 @@ const AdminOrder = () => {
           </Card>
         </Box>
       </Flex>
-      <ModalContainer show={isOpen} title="搜尋訂單" onClose={onClose}>
-        <SearchForm />
-      </ModalContainer>
+      <SearchFormModal show={isOpen} onClose={onClose} />
     </>
   );
 };

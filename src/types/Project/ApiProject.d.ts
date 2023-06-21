@@ -58,3 +58,20 @@ declare namespace ApiProjectContent {
     content: string;
   };
 }
+
+declare namespace ApiProjectPlan {
+  interface Plan {
+    _id: string;
+    title: string;
+    price: number;
+    content: string;
+    isAllowMulti: number;
+  }
+
+  interface PlanBody {
+    title: string;
+    price: number;
+    content: string;
+    isAllowMulti: number;
+  }
+}

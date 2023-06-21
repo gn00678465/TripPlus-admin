@@ -84,3 +84,28 @@ export function apiPostProjectInfoContent(
     data
   );
 }
+
+export function apiGetProjectPlan(id: string) {
+  return request.get<ApiProjectPlan.Plan[]>(`/admin/project/${id}/plan`);
+}
+
+export function apiPostProjectPlan(id: string, data: ApiProjectPlan.PlanBody) {
+  return request.post<ApiProjectPlan.Plan>(`/admin/project/${id}/plan`, data);
+}
+
+export function apiPatchProjectPlan(
+  projId: string,
+  planId: string,
+  data: ApiProjectPlan.PlanBody
+) {
+  return request.patch<ApiProjectPlan.Plan>(
+    `/admin/project/${projId}/plan/${planId}`,
+    data
+  );
+}
+
+export function apiDeleteProjectPlan(projId: string, planId: string) {
+  return request.delete<ApiProjectPlan.Plan>(
+    `/admin/project/${projId}/plan/${planId}`
+  );
+}

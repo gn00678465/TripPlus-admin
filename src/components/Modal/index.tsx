@@ -15,6 +15,7 @@ export interface ModalContainerProps {
   title: string;
   children: string | ReactElement;
   onClose: () => void;
+  onOk?: () => void;
   okText?: string;
   cancelText?: string;
   footerHidden?: boolean;
@@ -26,6 +27,7 @@ export const ModalContainer = ({
   title,
   children,
   onClose,
+  onOk,
   footer,
   okText = 'Ok',
   cancelText = 'Cancel',
@@ -52,7 +54,9 @@ export const ModalContainer = ({
                 <Button variant="ghost" mr={3} onClick={onClose}>
                   {cancelText}
                 </Button>
-                <Button colorScheme="primary">{okText}</Button>
+                <Button colorScheme="primary" onClick={onOk}>
+                  {okText}
+                </Button>
               </>
             )}
           </ModalFooter>

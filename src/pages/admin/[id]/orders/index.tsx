@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, Dispatch, useEffect } from 'react';
 import { useImmerReducer } from 'use-immer';
 import { debounce } from 'lodash-es';
 import type { ReactElement } from 'react';
@@ -20,8 +20,7 @@ import {
   FormControl,
   FormLabel,
   Text,
-  Select,
-  Button
+  Select
 } from '@chakra-ui/react';
 import { useMediaQuery } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -29,36 +28,67 @@ import { DataTable, Pagination } from '@/components';
 import { MdOutlineSearch, MdCheckCircle } from 'react-icons/md';
 import { IoMdOptions } from 'react-icons/io';
 import { currencyTWD, swrFetch, utc2Local } from '@/utils';
-import { useElementSize, usePagination, useWindowSize } from '@/hooks';
+import {
+  useElementSize,
+  usePagination,
+  usePaginationState,
+  useWindowSize
+} from '@/hooks';
 import useSwr from 'swr';
 import { apiFetchOrders } from '@/api';
-import { useForm, SubmitHandler } from 'react-hook-form';
 import { shipmentEnum, paymentStatusEnum } from '@/enums';
+import { SortingState } from '@tanstack/react-table';
 
-interface SearchInput {
-  status?: number;
-  paymentStatus?: number;
+interface SearchFormModalProps
+  extends Pick<ModalContainerProps, 'show' | 'onClose' | 'onOk'> {
+  query: QueryState;
+  onDispatch: Dispatch<QueryAction>;
+}
+
+interface QueryState {
+  query?: string;
+  status?: string;
+  paidStatus?: string;
+  orderDate?: string;
+  shipDate?: string;
+}
+
+interface QueryAction {
+  type:
+    | 'setQuery'
+    | 'setStatus'
+    | 'setPaidStatus'
+    | 'setOrderDate'
+    | 'setShipDate';
+  payload: string;
 }
 
 const SearchFormModal = ({
   show,
-  onClose
-}: Pick<ModalContainerProps, 'show' | 'onClose'>) => {
-  const { register, handleSubmit } = useForm<SearchInput>();
-
-  const onSubmit: SubmitHandler<SearchInput> = (data) => console.log(data);
-
+  query,
+  onClose,
+  onOk,
+  onDispatch
+}: SearchFormModalProps) => {
   return (
     <ModalContainer
       show={show}
       title="搜尋訂單"
+      cancelText="取消"
+      okText="搜尋"
+      onOk={onOk}
       onClose={onClose}
-      footerHidden={true}
     >
-      <Box as="form" className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
+      <Box className="space-y-2">
         <FormControl>
           <FormLabel>訂單狀態</FormLabel>
-          <Select placeholder="全部" {...register('status')}>
+          <Select
+            placeholder="全部"
+            defaultValue={query.status}
+            onChange={(e) => {
+              onDispatch({ type: 'setStatus', payload: e.target.value });
+            }}
+          >
             {shipmentEnum.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}
@@ -68,7 +98,13 @@ const SearchFormModal = ({
         </FormControl>
         <FormControl>
           <FormLabel>付款狀態</FormLabel>
-          <Select placeholder="全部" {...register('paymentStatus')}>
+          <Select
+            placeholder="全部"
+            defaultValue={query.paidStatus}
+            onChange={(e) => {
+              onDispatch({ type: 'setPaidStatus', payload: e.target.value });
+            }}
+          >
             {paymentStatusEnum.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}
@@ -78,24 +114,127 @@ const SearchFormModal = ({
         </FormControl>
         <FormControl>
           <FormLabel>訂購日</FormLabel>
-          <Input type="email" />
+          <Input
+            type="date"
+            defaultValue={query.orderDate}
+            onChange={(e) => {
+              onDispatch({ type: 'setOrderDate', payload: e.target.value });
+            }}
+          />
         </FormControl>
         <FormControl>
           <FormLabel>出貨日</FormLabel>
-          <Input type="email" />
+          <Input
+            type="date"
+            defaultValue={query.shipDate}
+            onChange={(e) => {
+              onDispatch({ type: 'setShipDate', payload: e.target.value });
+            }}
+          />
         </FormControl>
-        <div className="mt-1 flex items-center gap-x-3 py-2">
-          <Button variant="ghost" onClick={onClose}>
-            取消
-          </Button>
-          <Button type="submit" colorScheme="primary">
-            搜尋
-          </Button>
-        </div>
       </Box>
     </ModalContainer>
   );
 };
+
+function useQueryParams() {
+  const initQuery: QueryState = {};
+  return useImmerReducer((draft: QueryState, action: QueryAction) => {
+    const actionMap = {
+      setQuery: (payload: string) => {
+        if (payload) {
+          draft.query = payload;
+        } else {
+          delete draft.query;
+        }
+      },
+      setStatus: (payload: string) => {
+        if (payload) {
+          draft.status = payload;
+        } else {
+          delete draft.status;
+        }
+      },
+      setPaidStatus: (payload: string) => {
+        if (payload) {
+          draft.paidStatus = payload;
+        } else {
+          delete draft.paidStatus;
+        }
+      },
+      setOrderDate: (payload: string) => {
+        if (payload) {
+          draft.orderDate = payload;
+        } else {
+          delete draft.orderDate;
+        }
+      },
+      setShipDate: (payload: string) => {
+        if (payload) {
+          draft.shipDate = payload;
+        } else {
+          delete draft.shipDate;
+        }
+      }
+    };
+
+    const has = action.type in actionMap;
+    has && actionMap[action.type](action.payload);
+  }, initQuery);
+}
+
+function useQueryString(
+  pagination: usePaginationState,
+  query: QueryState,
+  sorting: SortingState
+) {
+  const [sort] = sorting;
+
+  let sortObj: Record<string, string> = {};
+
+  if (sort) {
+    switch (sort.id) {
+      case 'transactionId':
+        sortObj.sortOrder = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'buyerName':
+        sortObj.sortBuyer = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'shipment':
+        sortObj.sortStatus = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'paymentStatus':
+        sortObj.sortPaidStatus = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'shipment':
+        sortObj.sortShipment = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'orderDate':
+        sortObj.sortOrderDate = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'shipDate':
+        sortObj.sortShipDate = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'total':
+        sortObj.sortTotal = sort.desc ? 'desc' : 'asc';
+        break;
+      default:
+        sortObj = {};
+        break;
+    }
+  } else {
+    sortObj = {};
+  }
+
+  const params = {
+    page: pagination.page,
+    limit: pagination.pageSize,
+    ...query,
+    ...sortObj
+  };
+
+  return new URLSearchParams(params as any).toString();
+}
 
 const AdminOrder = () => {
   const router = useRouter();
@@ -114,6 +253,7 @@ const AdminOrder = () => {
   const { id } = router.query;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [total, setTotal] = useState(0);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const [isLargeMobile] = useMediaQuery('(min-width: 375px)', {
     ssr: true,
@@ -130,62 +270,28 @@ const AdminOrder = () => {
     defaultPageSize: 10
   });
 
-  interface QueryState {
-    query?: null | string;
-    status?: null | string;
-  }
+  const [query, dispatch] = useQueryParams();
 
-  interface QueryAction {
-    type: 'setQuery' | 'setStatus';
-    payload: string;
-  }
-
-  const initQuery: QueryState = {};
-  const [query, dispatch] = useImmerReducer(
-    (draft: QueryState, action: QueryAction) => {
-      const actionMap = {
-        setQuery: (payload: string) => {
-          if (payload) {
-            draft.query = payload;
-          } else {
-            delete draft.query;
-          }
-        },
-        setStatus: (payload: string) => {
-          if (payload) {
-            draft.status = payload;
-          } else {
-            delete draft.status;
-          }
-        }
-      };
-
-      const has = action.type in actionMap;
-      has && actionMap[action.type](action.payload);
-    },
-    initQuery
-  );
-
-  const qs = useMemo(() => {
-    const params = {
-      page: pagination.page,
-      limit: pagination.pageSize,
-      ...query
-    };
-    return new URLSearchParams(params as any).toString();
-  }, [pagination, query]);
+  const qs = useQueryString(pagination, query, sorting);
 
   // query
-  const { data: orderListData } = useSwr(
-    id ? `/admin/project/${id}/orderList?${qs}` : null,
-    () => swrFetch(apiFetchOrders(id as string)),
+  const { data: orderListData, mutate } = useSwr(
+    id ? `/admin/project/${id}/orderList` : null,
+    () => swrFetch(apiFetchOrders(id as string, qs)),
     {
+      suspense: isOpen,
+      revalidateOnFocus: false,
       onSuccess(data, key, config) {
         setIsLoading(false);
         setTotal(data.data.total);
       }
     }
   );
+
+  useEffect(() => {
+    setIsLoading(true);
+    mutate();
+  }, [sorting, mutate]);
 
   const tableHeight = useMemo(() => {
     if (isLargeDesktop) {
@@ -242,7 +348,8 @@ const AdminOrder = () => {
         isNumeric: true
       }
     }),
-    columnHelper.accessor('note', {
+    columnHelper.display({
+      id: 'note',
       cell: (info) => info.getValue(),
       header: '備註',
       size: 60
@@ -321,6 +428,10 @@ const AdminOrder = () => {
   const debounceInputQ = debounce(function (e) {
     if (compositionLockRef.current) return;
     dispatch({ type: 'setQuery', payload: e.target.value });
+    window.setTimeout(async () => {
+      setIsLoading(true);
+      await mutate();
+    }, 210);
   }, 200);
 
   return (
@@ -328,7 +439,7 @@ const AdminOrder = () => {
       <Head>
         <title>訂單列表-TripPlus+</title>
       </Head>
-      <Flex h="full" w="full" flexDirection="column">
+      <Flex h="full" minHeight="calc(100vh)" w="full" flexDirection="column">
         <div
           ref={headerRef}
           className="flex shrink-0 items-center justify-between p-3 pt-12 md:px-12"
@@ -388,6 +499,9 @@ const AdminOrder = () => {
                 pagination={pagination}
                 loading={isLoading}
                 manualSorting={true}
+                onSortingChange={(value) => {
+                  setSorting(value);
+                }}
               />
               <div
                 ref={paginationRef}
@@ -413,7 +527,17 @@ const AdminOrder = () => {
           </Card>
         </Box>
       </Flex>
-      <SearchFormModal show={isOpen} onClose={onClose} />
+      <SearchFormModal
+        show={isOpen}
+        onClose={onClose}
+        query={query}
+        onDispatch={dispatch}
+        onOk={async () => {
+          setIsLoading(true);
+          onClose();
+          await mutate();
+        }}
+      />
     </>
   );
 };

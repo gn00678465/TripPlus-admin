@@ -85,9 +85,15 @@ export function apiPostProjectInfoContent(
   );
 }
 
-export function apiFetchOrders(id: string, config?: AxiosRequestConfig) {
+export function apiFetchOrders(
+  id: string,
+  query: string,
+  config?: AxiosRequestConfig
+) {
   return request.get<ApiProjectOrders.OrderList>(
-    `/admin/project/${id}/orderList`,
+    !query
+      ? `/admin/project/${id}/orderList`
+      : `/admin/project/${id}/orderList?${query}`,
     config
   );
 }

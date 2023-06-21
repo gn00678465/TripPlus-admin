@@ -1,12 +1,16 @@
 export const shipmentEnum = [
   {
     value: 0,
-    label: '宅配'
+    label: '尚未出貨'
+  },
+  {
+    value: 1,
+    label: '出貨中'
+  },
+  {
+    value: 2,
+    label: '已抵達'
   }
-  // {
-  //   value: 1,
-  //   label: '超商貨到付款'
-  // }
 ];
 
 export const paymentStatusEnum = [

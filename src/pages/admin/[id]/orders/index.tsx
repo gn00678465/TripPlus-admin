@@ -291,6 +291,11 @@ const AdminOrder = () => {
   useEffect(() => {
     setIsLoading(true);
     mutate();
+  }, [pagination, mutate]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    mutate();
   }, [sorting, mutate]);
 
   const tableHeight = useMemo(() => {

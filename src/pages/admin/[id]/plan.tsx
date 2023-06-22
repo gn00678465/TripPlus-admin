@@ -229,12 +229,12 @@ export default function ProjectContent() {
 
   const onSubmit = (data: Project.FormValues) => {
     if (formIdx === null) return;
-
-    setContent((state) => {
-      state[formIdx] = '';
-      return state;
-    });
-
+    if (content[formIdx] === undefined) {
+      setContent((state) => {
+        state[formIdx] = '';
+        return state;
+      });
+    }
     if (!content[formIdx]) return;
 
     const payload = {

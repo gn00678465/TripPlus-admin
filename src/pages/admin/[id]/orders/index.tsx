@@ -295,7 +295,7 @@ const AdminOrder = () => {
 
   const tableHeight = useMemo(() => {
     if (isLargeDesktop) {
-      return windowSize.height - headerH - toolbarH - paginationH;
+      return windowSize.height - headerH - toolbarH - paginationH - 64;
     }
     return 'auto';
   }, [windowSize, headerH, toolbarH, paginationH, isLargeDesktop]);
@@ -490,7 +490,11 @@ const AdminOrder = () => {
           h="full"
         >
           <Card h="full">
-            <CardBody h="full" position="relative">
+            <CardBody
+              h="full"
+              position="relative"
+              pb={{ base: `${paginationH}px` }}
+            >
               <DataTable
                 h="full"
                 minH={tableHeight}

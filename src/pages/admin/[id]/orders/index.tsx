@@ -335,13 +335,17 @@ const AdminOrder = () => {
     }),
     columnHelper.accessor('createdAt', {
       cell: (info) =>
-        utc2Local(info.getValue()).format('YYYY 年 MM 月 DD 日 HH:mm'),
+        info.getValue()
+          ? utc2Local(info.getValue()).format('YYYY 年 MM 月 DD 日 HH:mm')
+          : '-',
       header: '訂購日',
       size: 50
     }),
     columnHelper.accessor('shipDate', {
       cell: (info) =>
-        utc2Local(info.getValue()).format('YYYY 年 MM 月 DD 日 HH:mm'),
+        info.getValue()
+          ? utc2Local(info.getValue()).format('YYYY 年 MM 月 DD 日 HH:mm')
+          : '-',
       header: '出貨日',
       size: 50
     }),

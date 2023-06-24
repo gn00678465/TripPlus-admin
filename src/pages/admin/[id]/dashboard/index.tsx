@@ -1,6 +1,13 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { ReactElement, useRef, useEffect, useMemo, useState } from 'react';
+import {
+  ReactElement,
+  useRef,
+  useEffect,
+  useMemo,
+  useState,
+  createContext
+} from 'react';
 import {
   Box,
   Flex,
@@ -196,6 +203,8 @@ const CounterBox = ({ count = 0, label, ...rest }: CounterBoxProps) => {
     </Box>
   );
 };
+
+const ProjectDataContext = createContext(undefined);
 
 const ProjectDashboard = () => {
   const router = useRouter();

@@ -1,10 +1,19 @@
+import { RefObject } from 'react';
 import { Box, BoxProps } from '@chakra-ui/react';
 
-interface ScrollbarBoxProps extends BoxProps {}
+interface ScrollbarBoxProps extends BoxProps {
+  innerRef?: RefObject<HTMLDivElement>;
+}
 
-const ScrollbarBox = ({ height, children, ...rest }: ScrollbarBoxProps) => {
+const ScrollbarBox = ({
+  height,
+  children,
+  innerRef,
+  ...rest
+}: ScrollbarBoxProps) => {
   return (
     <Box
+      ref={innerRef}
       height={height}
       overflowX="hidden"
       overflowY="auto"

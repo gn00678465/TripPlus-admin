@@ -1,51 +1,25 @@
-import { Text, Textarea, Icon, Flex, Box, BoxProps } from '@chakra-ui/react';
+import {
+  Text,
+  Textarea,
+  Icon,
+  Flex,
+  Box,
+  BoxProps,
+  Spinner
+} from '@chakra-ui/react';
 import { BsSend } from 'react-icons/bs';
 import { CiImageOn } from 'react-icons/ci';
 import { SlEmotsmile, SlSocialYoutube } from 'react-icons/sl';
-import { ImageFallback } from '@/components';
-import NoImage from '@/assets/images/no-image.png';
 import { ScrollbarBox } from '@/components';
-
-const ProjectInfo = () => {
-  return (
-    <Flex
-      justifyContent="flex-start"
-      fontSize="sm"
-      mr="44px"
-      bg="white"
-      borderRadius={8}
-      color="gray.500"
-      px={4}
-      py={3}
-      columnGap={3}
-    >
-      <Box
-        w={84}
-        height={84}
-        borderRadius={8}
-        overflow="hidden"
-        position="relative"
-        flexShrink={0}
-      >
-        <ImageFallback
-          src="https://images.unsplash.com/photo-1603030908455-4a4588c0acdd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
-          fallbackSrc={NoImage.src}
-          alt="專案圖片"
-          fill
-          priority
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
-          style={{
-            objectFit: 'cover',
-            objectPosition: 'center'
-          }}
-        />
-      </Box>
-      <Text fontSize="sm">
-        台灣世界展望會「籃海計畫」|用籃球教育翻轉偏鄉孩子人生，追「球」夢想、站穩舞台！
-      </Text>
-    </Flex>
-  );
-};
+import { useEffect, useState, useRef, RefObject, useMemo } from 'react';
+import { apiFetchMessage } from '@/api';
+import useSWR from 'swr';
+import { swrFetch, utc2Local } from '@/utils';
+import { Socket, ServerToClientEvents, ClientToServerEvents } from '@/config';
+import { useContext } from 'react';
+import { AdminContext } from '@/components';
+import { debounce } from 'lodash-es';
+import dayjs from 'dayjs';
 
 const Sender = ({ text }: { text: string }) => {
   return (
@@ -67,29 +41,219 @@ const Receiver = ({ text }: { text: string }) => {
   );
 };
 
-export interface ChatRoomProps extends BoxProps {}
+export interface ChatRoomProps extends BoxProps {
+  name?: string;
+  roomId?: string;
+  sender?: string;
+  receiver?: string;
+  socket?: Socket<ServerToClientEvents, ClientToServerEvents>;
+  renderProjectInfo: JSX.Element;
+}
 
-export function ChatRoom(props: ChatRoomProps) {
+interface Message {
+  content: string;
+  receiver: string;
+  roomId: string;
+  sender: string;
+  date?: string;
+}
+
+function handleMessage(data: ApiMessages.Message): Message {
+  return {
+    content: data.content,
+    receiver: data.receiver._id,
+    roomId: data.roomId._id,
+    sender: data.sender._id,
+    date: data.createdAt
+  };
+}
+
+function useMessagesList(roomId: string, page: number) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isStop, setIsStop] = useState(false);
+
+  const { isLoading } = useSWR(
+    roomId ? `/admin/${roomId}/messages?page=${page}` : null,
+    () => swrFetch(swrFetch(apiFetchMessage(roomId as string, page, 10))),
+    {
+      revalidateOnFocus: false,
+      onSuccess(data, key, config) {
+        if (data.data.length < 10) {
+          setIsStop(true);
+        }
+        setMessages((prev) =>
+          data.data.reverse().map(handleMessage).concat(prev)
+        );
+      }
+    }
+  );
+
+  return {
+    messages: useMemo(() => messages, [messages]),
+    isLoading,
+    setMessages,
+    isStop
+  };
+}
+
+function groupMessages(arr: Message[]) {
+  let map: Map<string, Message[]> = new Map();
+  let currentDate: string | undefined = undefined;
+
+  function compare(date: string) {
+    return dayjs(date).isAfter(
+      dayjs(currentDate).startOf('date').add(1, 'day')
+    );
+  }
+
+  arr.forEach((item) => {
+    if (!currentDate) {
+      currentDate = item.date;
+      map.set(currentDate as string, [item]);
+    }
+    if (currentDate && !compare(item.date as string)) {
+      map.get(currentDate)?.push(item);
+    }
+    if (currentDate && compare(item.date as string)) {
+      currentDate = item.date;
+      map.set(currentDate as string, [item]);
+    }
+  });
+
+  return Array.from(map.entries());
+}
+
+export function ChatRoom({
+  name,
+  roomId,
+  socket,
+  sender,
+  receiver,
+  renderProjectInfo,
+  ...rest
+}: ChatRoomProps) {
+  const context = useContext(AdminContext);
+  const chatWindowRef: RefObject<HTMLDivElement> = useRef(null);
+  const contentRef: RefObject<HTMLTextAreaElement> = useRef(null);
+  const [page, setPage] = useState(1);
+  const isScrollDown = useRef<boolean>(false);
+
+  const { messages, setMessages, isLoading, isStop } = useMessagesList(
+    roomId as string,
+    page
+  );
+
+  useEffect(() => {
+    if (socket && roomId) {
+      socket.emit('joinRoom', roomId);
+      socket.on('message', (data) => {
+        setMessages((prev) => prev.concat([data]));
+        if (
+          chatWindowRef.current &&
+          Math.abs(
+            chatWindowRef.current.scrollTop +
+              chatWindowRef.current.offsetHeight -
+              chatWindowRef.current.scrollHeight
+          ) <= 10
+        ) {
+          chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+        }
+      });
+    }
+
+    return () => {
+      if (socket && roomId) {
+        socket?.emit('leaveRoom', roomId);
+        socket.off('message');
+      }
+    };
+  }, [roomId, socket]);
+
+  useEffect(() => {
+    const chatWindow = chatWindowRef.current;
+
+    const debounceScroll = debounce(function () {
+      if (chatWindow && chatWindow.scrollTop <= 30) {
+        if (!isStop) {
+          setPage((prev) => prev + 1);
+        }
+      }
+    }, 200);
+
+    if (chatWindow) {
+      chatWindow.addEventListener('scroll', debounceScroll);
+    }
+
+    if (chatWindow && !isScrollDown.current) {
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    return () => {
+      if (chatWindow) {
+        chatWindow.removeEventListener('scroll', debounceScroll);
+      }
+    };
+  }, [messages]);
+
+  function sendMessage() {
+    const content = contentRef.current?.value;
+    if (!content || !receiver || !sender || !roomId) return;
+    socket?.emit('message', { content, receiver, sender, roomId });
+    contentRef.current.value = '';
+  }
+
   return (
-    <Box bg="gray.100" {...props}>
+    <Box bg="gray.100" {...rest}>
       <Text py={2} pl={4} fontSize="xs" color="gray.400" bg="white">
-        abc123456
+        {name}
       </Text>
       <ScrollbarBox
+        position="relative"
         height={{
           base: 'calc(100vh - 125px - 34px - 40px)',
           lg: 'calc(546px - 125px - 34px)'
         }}
+        innerRef={chatWindowRef}
       >
-        <Text fontSize="xs" color="gray.400" textAlign="center" pt={4} pb={2}>
-          2021.03.18 00:45
-        </Text>
-        <ProjectInfo />
-        <Box px={4} py={2} className="space-y-6">
-          <Sender text="您好，我想請問一下這個活動的偏鄉地區是在哪邊呢？" />
-          <Receiver text="主要是幫助東部偏鄉的小朋友，籌助資金，讓他們也能站上夢想的舞台！" />
-          <Sender text="好的，謝謝！" />
-        </Box>
+        {isLoading ? (
+          <Spinner
+            position="absolute"
+            top="50%"
+            left="50%"
+            size="lg"
+            transform="translate(-50%, -50%)"
+            color="primary.500"
+          />
+        ) : (
+          <>
+            {renderProjectInfo}
+            {groupMessages(messages).map(([key, value]) => {
+              return (
+                <div key={key}>
+                  <Text
+                    fontSize="xs"
+                    color="gray.400"
+                    textAlign="center"
+                    pt={4}
+                    pb={2}
+                  >
+                    {utc2Local(key).format('YYYY.MM.DD HH:mm')}
+                  </Text>
+                  <Box px={4} py={2} className="space-y-6">
+                    {value.map((msg, index) => {
+                      if (msg.sender === sender) {
+                        return (
+                          <Receiver key={key + index} text={msg.content} />
+                        );
+                      }
+                      return <Sender key={key + index} text={msg.content} />;
+                    })}
+                  </Box>
+                </div>
+              );
+            })}
+          </>
+        )}
       </ScrollbarBox>
       <Box className="border-t-[1px] border-t-gray-200" py={3} px={4}>
         <Textarea
@@ -97,6 +261,8 @@ export function ChatRoom(props: ChatRoomProps) {
           resize={'none'}
           outline={'none'}
           border={0}
+          fontSize="sm"
+          ref={contentRef}
         />
         <Flex w="full" alignItems="center" columnGap={3}>
           <Icon
@@ -139,6 +305,7 @@ export function ChatRoom(props: ChatRoomProps) {
               color: 'gray.500'
             }}
             boxSize={{ base: 5 }}
+            onClick={sendMessage}
           />
         </Flex>
       </Box>

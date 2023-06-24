@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-type UserData = Pick<ApiUserData.userData, 'name' | 'photo'>;
+interface UserData extends Pick<ApiUserData.userData, 'name' | 'photo'> {
+  id: string;
+}
 
 type State = {
   userData: UserData | null;

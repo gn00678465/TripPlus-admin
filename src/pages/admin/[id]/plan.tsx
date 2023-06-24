@@ -174,7 +174,7 @@ export default function ProjectContent() {
   const addPlan = () => {
     append({
       title: '',
-      price: 0,
+      price: 1,
       isAllowMulti: 1
     });
   };
@@ -344,7 +344,7 @@ export default function ProjectContent() {
                     mb={10}
                   >
                     <FormLabel>價格</FormLabel>
-                    <NumberInput defaultValue={0}>
+                    <NumberInput defaultValue={1} min={1}>
                       <NumberInputField
                         {...register(`fieldArray.${index}.price`, {
                           required: '請填入價格',

@@ -2,7 +2,7 @@ import { ReactElement, useState } from 'react';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { AdminLayout, ProjectWrap } from '@/components';
-import ModalBox, { type ModalState } from '@/components/Modal';
+import { type ModalState, AlertModal } from '@/components';
 import { SettingsBlock } from '@/components/Project';
 import {
   Button,
@@ -416,13 +416,13 @@ export default function ProjectContent() {
         </Box>
       </SettingsBlock>
 
-      <ModalBox
+      <AlertModal
         content={modal.content}
         isOpen={modal.isOpen}
         onClose={() => setOpenModal(false)}
         header="提醒"
         footer={modal.footer}
-      ></ModalBox>
+      ></AlertModal>
     </>
   );
 }

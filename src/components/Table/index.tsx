@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   useReactTable,
   flexRender,
@@ -21,6 +21,7 @@ import {
   Skeleton
 } from '@chakra-ui/react';
 import { SlDrawer } from 'react-icons/sl';
+import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
 
 export interface DataTableProps<T extends object> extends TableContainerProps {
   data: T[];
@@ -31,6 +32,39 @@ export interface DataTableProps<T extends object> extends TableContainerProps {
     pageCount: number;
   };
   loading?: boolean;
+  manualSorting?: boolean;
+  sorting?: SortingState;
+  onSortingChange?: (arg: SortingState) => void;
+}
+
+function Asc() {
+  return (
+    <div className="relative">
+      <Icon as={MdArrowDropUp} boxSize={5} position="absolute" bottom={-1.5} />
+      <Icon
+        as={MdArrowDropDown}
+        boxSize={5}
+        position="absolute"
+        top={-1.5}
+        opacity={0.5}
+      />
+    </div>
+  );
+}
+
+function Desc() {
+  return (
+    <div className="relative">
+      <Icon
+        as={MdArrowDropUp}
+        boxSize={5}
+        position="absolute"
+        bottom={-1.5}
+        opacity={0.5}
+      />
+      <Icon as={MdArrowDropDown} boxSize={5} position="absolute" top={-1.5} />
+    </div>
+  );
 }
 
 export function DataTable<T extends object>({
@@ -38,10 +72,18 @@ export function DataTable<T extends object>({
   columns,
   height,
   pagination,
+  onSortingChange,
   loading = false,
+  manualSorting = false,
   ...rest
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  useEffect(() => {
+    if (onSortingChange) {
+      onSortingChange(sorting);
+    }
+  }, [sorting, onSortingChange]);
 
   const table = useReactTable({
     columns,
@@ -57,7 +99,8 @@ export function DataTable<T extends object>({
       },
       sorting
     },
-    manualPagination: true
+    manualPagination: true,
+    manualSorting: manualSorting
   });
 
   function renderEmpty() {
@@ -121,14 +164,16 @@ export function DataTable<T extends object>({
                     isNumeric={meta?.isNumeric}
                     style={{ width: `${header.column.getSize()}px` }}
                   >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                    {{
-                      asc: ' 🔼',
-                      desc: ' 🔽'
-                    }[header.column.getIsSorted() as string] ?? null}
+                    <div className="flex items-center gap-x-1">
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      {{
+                        asc: Asc(),
+                        desc: Desc()
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </div>
                   </Th>
                 );
               })}

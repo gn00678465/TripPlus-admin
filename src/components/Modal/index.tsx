@@ -8,44 +8,60 @@ import {
   ModalCloseButton,
   Button
 } from '@chakra-ui/react';
+import { ReactElement } from 'react';
 
-interface ModalBoxProps {
-  isOpen: boolean;
+export interface ModalContainerProps {
+  show: boolean;
+  title: string;
+  children: string | ReactElement;
   onClose: () => void;
-  header: string;
-  footer: React.ReactNode;
-  content: React.ReactNode;
+  onOk?: () => void;
+  okText?: string;
+  cancelText?: string;
+  footerHidden?: boolean;
+  footer?: string | number | JSX.Element | JSX.Element[] | (() => JSX.Element);
 }
 
-export interface ModalState {
-  isOpen: boolean;
-  content: React.ReactNode;
-  footer: React.ReactNode | null;
-}
-
-const ChakraModal = ({
-  isOpen,
+export const ModalContainer = ({
+  show = false,
+  title,
+  children,
   onClose,
-  header,
+  onOk,
   footer,
-  content
-}: ModalBoxProps) => {
+  okText = 'Ok',
+  cancelText = 'Cancel',
+  footerHidden = false
+}: ModalContainerProps) => {
+  function renderFooter(footer: ModalContainerProps['footer']) {
+    if (typeof footer === 'function') {
+      return footer();
+    }
+    return footer;
+  }
+
   return (
-    <Modal onClose={onClose} isOpen={isOpen} isCentered>
+    <Modal isOpen={show} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{header}</ModalHeader>
+        <ModalHeader>{title}</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>{content}</ModalBody>
-        <ModalFooter>
-          {footer}
-          <Button onClick={onClose} ml={3}>
-            取消
-          </Button>
-        </ModalFooter>
+        <ModalBody>{children}</ModalBody>
+        {!footerHidden && (
+          <ModalFooter>
+            {(footer && renderFooter(footer)) || (
+              <>
+                <Button variant="ghost" mr={3} onClick={onClose}>
+                  {cancelText}
+                </Button>
+                <Button colorScheme="primary" onClick={onOk}>
+                  {okText}
+                </Button>
+              </>
+            )}
+          </ModalFooter>
+        )}
       </ModalContent>
     </Modal>
   );
 };
-
-export default ChakraModal;

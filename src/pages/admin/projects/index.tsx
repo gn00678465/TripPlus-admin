@@ -243,7 +243,7 @@ const AdminProjects = () => {
             icon={<Icon as={IoNewspaperOutline} />}
             variant="outline"
             onClick={() => {
-              router.push(`/admin/${info.row.original._id}/order`);
+              router.push(`/admin/${info.row.original._id}/orders`);
             }}
           ></IconButton>
         </div>

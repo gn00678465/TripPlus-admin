@@ -33,6 +33,7 @@ import { currency, safeAwait } from '@/utils';
 import { useElementSize, usePagination, useWindowSize } from '@/hooks';
 import useSwr from 'swr';
 import { apiFetchProjects } from '@/api';
+import { useTeamStore } from '@/store';
 
 interface SelectOptions {
   value: string;
@@ -177,6 +178,8 @@ const AdminProjects = () => {
     return 'auto';
   }, [windowSize, headerH, toolbarH, paginationH, isLargeDesktop]);
 
+  const { setTeamId } = useTeamStore();
+
   const columnHelper = createColumnHelper<ApiProject.ProjectItem>();
 
   const columns = [
@@ -192,7 +195,11 @@ const AdminProjects = () => {
     }),
     columnHelper.accessor('title', {
       cell: (info) => (
-        <Link href={`/admin/${info.row.original._id}/dashboard`} as={NextLink}>
+        <Link
+          href={`/admin/${info.row.original._id}/dashboard`}
+          as={NextLink}
+          onClick={() => setTeamId(info.row.original.teamId._id)}
+        >
           {info.getValue()}
         </Link>
       ),

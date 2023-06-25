@@ -27,6 +27,7 @@ import dayjs from 'dayjs';
 import { useSWRConfig } from 'swr';
 import { apiPostProject } from '@/api';
 import { useRouter } from 'next/router';
+import { useTeamStore } from '@/store';
 
 export default function AdminProject() {
   const [file, setFile] = useState<undefined | File>();
@@ -58,6 +59,8 @@ export default function AdminProject() {
       target: 0
     }
   });
+
+  const { setTeamId } = useTeamStore();
 
   const categoryOptions = [
     {
@@ -110,6 +113,7 @@ export default function AdminProject() {
             const res = await apiPostProject(params);
 
             if (res.status === 'Success') {
+              setTeamId(res.data.teamId);
               router.push(`/admin/${res.data._id}/dashboard`);
             }
             if (res.status === 'Error') {

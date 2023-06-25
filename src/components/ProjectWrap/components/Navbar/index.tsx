@@ -22,7 +22,7 @@ const Navbar: FC<NavbarProps> = ({ ...rest }: NavbarProps) => {
       label: '專案內文'
     },
     {
-      href: `/admin/${id}/teams`,
+      href: `/admin/${id}/team`,
       label: '團隊資料'
     },
     {

@@ -11,15 +11,21 @@ import { ChatItem } from './components';
 import { MdOutlineSearch } from 'react-icons/md';
 import styles from './styles.module.css';
 import ChatMenu from '../Menu';
-import { useContext } from 'react';
+import { useContext, Dispatch, SetStateAction } from 'react';
 import { AdminContext } from '@/components';
 
 interface ChatListProps extends Omit<FlexProps, 'onClick'> {
   chatRooms: ApiMessages.MessageList[];
   onClick?: (arg: Messages.MessageSetting) => void;
+  setProjectInfo: Dispatch<SetStateAction<{ title: string; photo: string }>>;
 }
 
-export function ChatList({ chatRooms, onClick, ...rest }: ChatListProps) {
+export function ChatList({
+  chatRooms,
+  onClick,
+  setProjectInfo,
+  ...rest
+}: ChatListProps) {
   const context = useContext(AdminContext);
 
   function renderChatItem(chatRoom: ApiMessages.MessageList) {
@@ -41,6 +47,8 @@ export function ChatList({ chatRooms, onClick, ...rest }: ChatListProps) {
             name: customer.name
           };
           onClick?.(roomId);
+          const { title } = chatRoom.message[0].roomId.projectId;
+          setProjectInfo((prev) => ({ ...prev, title }));
         }}
       >
         <ChatItem

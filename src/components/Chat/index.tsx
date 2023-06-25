@@ -164,6 +164,7 @@ export default function Chat() {
                 onClick={(arg) => {
                   setCurrentChatRoom(arg);
                 }}
+                setProjectInfo={setProjectInfo}
               />
             </ScrollbarBox>
           </div>
@@ -187,6 +188,7 @@ export default function Chat() {
                   setCurrentChatRoom(arg);
                   onSlideOpen();
                 }}
+                setProjectInfo={setProjectInfo}
               />
             </ScrollbarBox>
             <ChatRoom

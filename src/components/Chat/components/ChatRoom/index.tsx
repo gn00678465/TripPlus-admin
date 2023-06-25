@@ -136,7 +136,7 @@ export function ChatRoom({
   const chatWindowRef: RefObject<HTMLDivElement> = useRef(null);
   const contentRef: RefObject<HTMLTextAreaElement> = useRef(null);
   const [page, setPage] = useState(1);
-  const isScrollDown = useRef<boolean>(false);
+  const scrollHeight = useRef(0);
 
   const { messages, setMessages, isLoading, isStop } = useMessagesList(
     roomId as string,
@@ -184,8 +184,12 @@ export function ChatRoom({
       chatWindow.addEventListener('scroll', debounceScroll);
     }
 
-    if (chatWindow && !isScrollDown.current) {
-      chatWindow.scrollTop = chatWindow.scrollHeight;
+    if (chatWindow && page === 1) {
+      chatWindow.scrollTop = scrollHeight.current = chatWindow.scrollHeight;
+    }
+    if (chatWindow && page !== 1) {
+      const scrollTop = chatWindow.scrollHeight - scrollHeight.current;
+      chatWindow.scrollTop = scrollHeight.current = scrollTop;
     }
 
     return () => {

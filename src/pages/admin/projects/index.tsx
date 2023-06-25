@@ -238,6 +238,7 @@ const AdminProjects = () => {
             icon={<Icon as={RiDashboard3Line} />}
             variant="outline"
             onClick={() => {
+              setTeamId(info.row.original.teamId._id);
               router.push(`/admin/${info.row.original._id}/dashboard`);
             }}
           ></IconButton>
@@ -259,6 +260,7 @@ const AdminProjects = () => {
             icon={<Icon as={IoNewspaperOutline} />}
             variant="outline"
             onClick={() => {
+              setTeamId(info.row.original.teamId._id);
               router.push(`/admin/${info.row.original._id}/orders`);
             }}
           ></IconButton>

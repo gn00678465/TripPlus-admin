@@ -146,7 +146,7 @@ const TeamSetting = () => {
   }, [dataURL, data]);
 
   const { handleSubmit, register, watch, reset, getValues, control, setValue } =
-    useForm();
+    useForm<Team.TeamData>();
 
   const onClickCancel = () => {
     setIsEdit?.(!isEdit);
@@ -154,7 +154,7 @@ const TeamSetting = () => {
     setFile(undefined);
   };
 
-  const onSubmit = async (formInput: any) => {
+  const onSubmit = async (formInput: Team.TeamData) => {
     let newFormInput = { ...formInput };
     if (file) {
       const formData = new FormData();

@@ -23,10 +23,12 @@ export function ChatList({ chatRooms, onClick, ...rest }: ChatListProps) {
   const context = useContext(AdminContext);
 
   function renderChatItem(chatRoom: ApiMessages.MessageList) {
-    const customer =
-      chatRoom.message[0].receiver._id === context.id
-        ? chatRoom.message[0].sender
-        : chatRoom.message[0].receiver;
+    const isCurrentUser =
+      chatRoom.message[0].receiver._id === context.id ? true : false;
+
+    const customer = isCurrentUser
+      ? chatRoom.message[0].sender
+      : chatRoom.message[0].receiver;
 
     return (
       <li

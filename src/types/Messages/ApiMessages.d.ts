@@ -26,18 +26,19 @@ declare namespace ApiMessages {
     projectId: ProjectId;
   }
 
-  interface ProjectId {
-    _id: string;
+  interface Project {
     creator: string;
+    keyVision: string;
     title: string;
-    progressRate: null;
-    countDownDays: number;
-    type: string;
-    id: string;
+  }
+
+  interface ChatRoom {
+    customerId: string;
+    message: Message[];
   }
 
   interface MessageList {
-    customerId: string;
-    message: Message[];
+    project: Project;
+    chatRooms: ChatRoom[];
   }
 }

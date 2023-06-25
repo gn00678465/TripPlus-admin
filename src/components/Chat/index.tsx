@@ -4,7 +4,7 @@ import { MdKeyboardArrowDown, MdKeyboardArrowLeft } from 'react-icons/md';
 import { ChatRoom, ChatList, ChatRoomDefault, ProjectInfo } from './components';
 import { ScrollbarBox } from '@/components';
 import styles from './styles.module.css';
-import { useEffect, useState, useRef, useContext } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   createSocket,
   Socket,
@@ -14,15 +14,16 @@ import {
 import { apiFetchMessages } from '@/api';
 import useSWR from 'swr';
 import { swrFetch } from '@/utils';
+import NoImage from '@/assets/images/no-image.png';
 
-function handleChatRoom(data: ApiMessages.MessageList[]) {
+function handleChatRoom(data: ApiMessages.ChatRoom[]) {
   return data;
 }
 
 export default function Chat() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLargerMd] = useMediaQuery('(min-width: 768px)');
-  const [chatRooms, setChatRooms] = useState<ApiMessages.MessageList[]>([]);
+  const [chatRooms, setChatRooms] = useState<ApiMessages.ChatRoom[]>([]);
   const [currentChatRoom, setCurrentChatRoom] = useState<
     Messages.MessageSetting | undefined
   >(undefined);
@@ -30,10 +31,8 @@ export default function Chat() {
     Socket<ServerToClientEvents, ClientToServerEvents> | undefined
   >(undefined);
   const [projectInfo, setProjectInfo] = useState({
-    title:
-      '台灣世界展望會「籃海計畫」|用籃球教育翻轉偏鄉孩子人生，追「球」夢想、站穩舞台！',
-    photo:
-      'https://images.unsplash.com/photo-1603030908455-4a4588c0acdd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80'
+    title: '',
+    photo: NoImage.src
   });
 
   const {
@@ -51,7 +50,11 @@ export default function Chat() {
     {
       revalidateOnFocus: false,
       onSuccess(data, key, config) {
-        setChatRooms(handleChatRoom(data.data));
+        setProjectInfo({
+          title: data.data.project.title,
+          photo: data.data.project.keyVision
+        });
+        setChatRooms(handleChatRoom(data.data.chatRooms));
       }
     }
   );
@@ -164,7 +167,6 @@ export default function Chat() {
                 onClick={(arg) => {
                   setCurrentChatRoom(arg);
                 }}
-                setProjectInfo={setProjectInfo}
               />
             </ScrollbarBox>
           </div>
@@ -188,7 +190,6 @@ export default function Chat() {
                   setCurrentChatRoom(arg);
                   onSlideOpen();
                 }}
-                setProjectInfo={setProjectInfo}
               />
             </ScrollbarBox>
             <ChatRoom

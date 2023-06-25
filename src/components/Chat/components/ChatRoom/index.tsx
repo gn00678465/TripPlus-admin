@@ -71,8 +71,9 @@ function handleMessage(data: ApiMessages.Message): Message {
 function useMessagesList(roomId: string, page: number) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStop, setIsStop] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { isLoading } = useSWR(
+  const { data } = useSWR(
     roomId ? `/admin/${roomId}/messages?page=${page}` : null,
     () => swrFetch(swrFetch(apiFetchMessage(roomId as string, page, 10))),
     {
@@ -84,6 +85,10 @@ function useMessagesList(roomId: string, page: number) {
         setMessages((prev) =>
           data.data.reverse().map(handleMessage).concat(prev)
         );
+        setIsLoading(false);
+      },
+      onError(err, key, config) {
+        setIsLoading(false);
       }
     }
   );
@@ -92,7 +97,8 @@ function useMessagesList(roomId: string, page: number) {
     messages: useMemo(() => messages, [messages]),
     isLoading,
     setMessages,
-    isStop
+    isStop,
+    setIsLoading
   };
 }
 
@@ -138,10 +144,8 @@ export function ChatRoom({
   const [page, setPage] = useState(1);
   const scrollHeight = useRef(0);
 
-  const { messages, setMessages, isLoading, isStop } = useMessagesList(
-    roomId as string,
-    page
-  );
+  const { messages, setMessages, isLoading, isStop, setIsLoading } =
+    useMessagesList(roomId as string, page);
 
   useEffect(() => {
     if (socket && roomId) {
@@ -175,6 +179,7 @@ export function ChatRoom({
     const debounceScroll = debounce(function () {
       if (chatWindow && chatWindow.scrollTop <= 30) {
         if (!isStop) {
+          setIsLoading(true);
           setPage((prev) => prev + 1);
         }
       }

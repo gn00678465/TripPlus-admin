@@ -18,9 +18,12 @@ import { AiOutlineFileText } from 'react-icons/ai';
 import { MdOutlineArrowBackIos } from 'react-icons/md';
 import { SidebarButton, SidebarButtonProps } from './components';
 
-interface SidebarProps extends BoxProps {}
+interface SidebarProps extends BoxProps {
+  name?: string;
+  photo?: string;
+}
 
-const Sidebar = ({ ...rest }: SidebarProps) => {
+const Sidebar = ({ name, photo, ...rest }: SidebarProps) => {
   const [isLargerSM] = useMediaQuery('(min-width: 640px)');
   const router = useRouter();
 
@@ -43,7 +46,7 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
     },
     {
       title: '訂單管理',
-      href: `/admin/${id}/order`,
+      href: `/admin/${id}/orders`,
       props: { icon: AiOutlineFileText, fontWeight: { base: 500 } }
     }
   ];
@@ -86,7 +89,8 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
         <div className="my-5 flex flex-col items-center justify-center gap-y-3 sm:my-10">
           <Avatar
             size="2xl"
-            name="王小明"
+            src={photo}
+            name={name}
             className="ring-8 ring-secondary-300 ring-offset-0"
           ></Avatar>
           <Text
@@ -94,7 +98,7 @@ const Sidebar = ({ ...rest }: SidebarProps) => {
             fontSize={{ base: 'sm', sm: '16px' }}
             color="gray.900"
           >
-            王小明
+            {name}
           </Text>
         </div>
         <Flex

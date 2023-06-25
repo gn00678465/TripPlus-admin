@@ -248,6 +248,7 @@ const AdminProjects = () => {
             icon={<Icon as={FiEdit} />}
             variant="outline"
             onClick={() => {
+              setTeamId(info.row.original.teamId._id);
               router.push(`/admin/${info.row.original._id}/settings`);
             }}
           ></IconButton>
@@ -258,8 +259,7 @@ const AdminProjects = () => {
             icon={<Icon as={IoNewspaperOutline} />}
             variant="outline"
             onClick={() => {
-              setTeamId(info.row.original.teamId._id);
-              router.push(`/admin/${info.row.original._id}/order`);
+              router.push(`/admin/${info.row.original._id}/orders`);
             }}
           ></IconButton>
         </div>

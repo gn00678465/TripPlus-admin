@@ -37,4 +37,15 @@ declare namespace Project {
   interface ProjectContent {
     content: string;
   }
+
+  interface PlanForm {
+    _id?: string;
+    title: string;
+    price: number;
+    isAllowMulti: number;
+  }
+
+  interface FormValues {
+    fieldArray: Project.PlanForm[];
+  }
 }

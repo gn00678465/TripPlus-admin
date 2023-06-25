@@ -154,7 +154,7 @@ const TeamSetting = () => {
     setFile(undefined);
   };
 
-  const onSubmit = async (formInput: Team.TeamData) => {
+  const onSubmit = async (formInput: any) => {
     let newFormInput = { ...formInput };
     if (file) {
       const formData = new FormData();

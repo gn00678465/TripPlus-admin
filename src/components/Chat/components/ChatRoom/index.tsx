@@ -272,9 +272,19 @@ export function ChatRoom({
           border={0}
           fontSize="sm"
           ref={contentRef}
+          onKeyUp={(e) => {
+            if (e.key === 'Enter') {
+              sendMessage();
+            }
+          }}
         />
-        <Flex w="full" alignItems="center" columnGap={3}>
-          <Icon
+        <Flex
+          w="full"
+          alignItems="center"
+          justifyContent="flex-end"
+          columnGap={3}
+        >
+          {/* <Icon
             as={SlEmotsmile}
             color="gray.400"
             cursor="pointer"
@@ -303,7 +313,7 @@ export function ChatRoom({
               color: 'gray.500'
             }}
             boxSize={{ base: 5 }}
-          />
+          /> */}
           <Icon
             as={BsSend}
             ml="auto"

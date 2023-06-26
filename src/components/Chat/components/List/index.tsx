@@ -64,7 +64,7 @@ export function ChatList({ chatRooms, onClick, ...rest }: ChatListProps) {
       borderLeftColor="gray.100"
       {...rest}
     >
-      <Flex columnGap={2}>
+      {/* <Flex columnGap={2}>
         <InputGroup>
           <InputLeftElement pl={{ base: 5, lg: 3 }}>
             <Icon boxSize={5} color="gray.900" as={MdOutlineSearch} />
@@ -78,7 +78,7 @@ export function ChatList({ chatRooms, onClick, ...rest }: ChatListProps) {
           />
         </InputGroup>
         <ChatMenu />
-      </Flex>
+      </Flex> */}
       {!chatRooms.length ? (
         <Text pt={{ base: 2 }} textAlign="center" flexGrow={1} w="full">
           尚未有人留言

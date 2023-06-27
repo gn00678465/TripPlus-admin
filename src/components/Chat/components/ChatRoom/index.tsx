@@ -165,9 +165,11 @@ export function ChatRoom({
       socket.emit('joinRoom', roomId);
       socket.on('message', (data) => {
         setMessages((prev) => prev.concat([data]));
+        const receiver =
+          data.sender === context.id ? data.receiver : data.sender;
         setLatestMessage((prev) => ({
           ...prev,
-          [data.receiver]: data.content
+          [receiver]: data.content
         }));
         scrollToBottom.current = true;
         setContent('');

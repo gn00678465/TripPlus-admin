@@ -202,10 +202,12 @@ export function ChatRoom({
   }, [messages]);
 
   function sendMessage() {
-    const content = contentRef.current?.value;
-    if (!content || !receiver || !sender || !roomId) return;
-    socket?.emit('message', { content, receiver, sender, roomId });
-    contentRef.current.value = '';
+    if (contentRef.current) {
+      const content = contentRef.current.value.replace(/\n/g, '');
+      if (!content || !receiver || !sender || !roomId) return;
+      socket?.emit('message', { content, receiver, sender, roomId });
+      contentRef.current.value = '';
+    }
   }
 
   return (
@@ -217,7 +219,7 @@ export function ChatRoom({
         position="relative"
         height={{
           base: 'calc(100vh - 125px - 34px - 40px)',
-          lg: 'calc(546px - 125px - 34px)'
+          md: 'calc(546px - 125px - 34px)'
         }}
         innerRef={chatWindowRef}
       >
@@ -264,11 +266,10 @@ export function ChatRoom({
       <Box className="border-t-[1px] border-t-gray-200" py={3} px={4}>
         <Textarea
           placeholder="輸入文字..."
-          resize={'none'}
-          outline={'none'}
           border={0}
           fontSize="sm"
           ref={contentRef}
+          wrap="off"
           onKeyUp={(e) => {
             if (e.key === 'Enter') {
               sendMessage();

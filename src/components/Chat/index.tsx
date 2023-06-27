@@ -4,7 +4,7 @@ import { MdKeyboardArrowDown, MdKeyboardArrowLeft } from 'react-icons/md';
 import { ChatRoom, ChatList, ChatRoomDefault, ProjectInfo } from './components';
 import { ScrollbarBox } from '@/components';
 import styles from './styles.module.css';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, createContext } from 'react';
 import {
   createSocket,
   Socket,
@@ -30,6 +30,7 @@ export default function Chat() {
     title: '',
     photo: NoImage.src
   });
+  const [latestMessage, setLatesMessage] = useState<Record<string, string>>({});
 
   const {
     isOpen: sliderIsOpen,
@@ -152,6 +153,7 @@ export default function Chat() {
                     photo={projectInfo.photo}
                   />
                 }
+                setLatestMessage={setLatesMessage}
               ></ChatRoom>
             )}
             <ScrollbarBox
@@ -160,6 +162,7 @@ export default function Chat() {
             >
               <ChatList
                 chatRooms={chatRooms}
+                latestMessage={latestMessage}
                 onClick={(arg) => {
                   setCurrentChatRoom(arg);
                 }}
@@ -182,6 +185,7 @@ export default function Chat() {
             >
               <ChatList
                 chatRooms={chatRooms}
+                latestMessage={latestMessage}
                 onClick={(arg) => {
                   setCurrentChatRoom(arg);
                   onSlideOpen();
@@ -202,6 +206,7 @@ export default function Chat() {
                   photo={projectInfo.photo}
                 />
               }
+              setLatestMessage={setLatesMessage}
             ></ChatRoom>
           </div>
         )}

@@ -11,7 +11,15 @@ import { BsSend } from 'react-icons/bs';
 import { CiImageOn } from 'react-icons/ci';
 import { SlControlStart, SlEmotsmile, SlSocialYoutube } from 'react-icons/sl';
 import { ScrollbarBox } from '@/components';
-import { useEffect, useState, useRef, RefObject, useMemo } from 'react';
+import {
+  useEffect,
+  useState,
+  useRef,
+  RefObject,
+  useMemo,
+  Dispatch,
+  SetStateAction
+} from 'react';
 import { apiFetchMessage } from '@/api';
 import useSWR from 'swr';
 import { swrFetch, utc2Local } from '@/utils';
@@ -48,6 +56,7 @@ export interface ChatRoomProps extends BoxProps {
   receiver?: string;
   socket?: Socket<ServerToClientEvents, ClientToServerEvents>;
   renderProjectInfo: JSX.Element;
+  setLatestMessage: Dispatch<SetStateAction<Record<string, string>>>;
 }
 
 interface Message {
@@ -136,6 +145,7 @@ export function ChatRoom({
   sender,
   receiver,
   renderProjectInfo,
+  setLatestMessage,
   ...rest
 }: ChatRoomProps) {
   const context = useContext(AdminContext);
@@ -206,6 +216,10 @@ export function ChatRoom({
       const content = contentRef.current.value.replace(/\n/g, '');
       if (!content || !receiver || !sender || !roomId) return;
       socket?.emit('message', { content, receiver, sender, roomId });
+      setLatestMessage((prev) => ({
+        ...prev,
+        [receiver]: content
+      }));
       contentRef.current.value = '';
     }
   }

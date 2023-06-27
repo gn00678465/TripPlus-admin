@@ -16,10 +16,16 @@ import { AdminContext } from '@/components';
 
 interface ChatListProps extends Omit<FlexProps, 'onClick'> {
   chatRooms: ApiMessages.ChatRoom[];
+  latestMessage: Record<string, string>;
   onClick?: (arg: Messages.MessageSetting) => void;
 }
 
-export function ChatList({ chatRooms, onClick, ...rest }: ChatListProps) {
+export function ChatList({
+  chatRooms,
+  latestMessage,
+  onClick,
+  ...rest
+}: ChatListProps) {
   const context = useContext(AdminContext);
 
   function renderChatItem(chatRoom: ApiMessages.ChatRoom) {
@@ -46,7 +52,7 @@ export function ChatList({ chatRooms, onClick, ...rest }: ChatListProps) {
       >
         <ChatItem
           name={customer.name}
-          content={chatRoom.message[0].content}
+          content={latestMessage?.[customer._id] || chatRoom.message[0].content}
           photo={customer.photo || undefined}
         />
       </li>

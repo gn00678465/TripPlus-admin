@@ -28,7 +28,6 @@ import { useContext } from 'react';
 import { AdminContext } from '@/components';
 import { debounce } from 'lodash-es';
 import dayjs from 'dayjs';
-import { useCompositions } from '@/hooks';
 
 const Sender = ({ text }: { text: string }) => {
   return (
@@ -156,8 +155,7 @@ export function ChatRoom({
   const scrollHeight = useRef(0);
   const isScrollTop = useRef<boolean>(false);
   const scrollToBottom = useRef<boolean>(true);
-  const { isComposition, onCompositionEnd, onCompositionStart } =
-    useCompositions();
+  const isComposition = useRef(true);
 
   const { messages, setMessages, isLoading, isStop, setIsLoading } =
     useMessagesList(roomId as string, page);
@@ -215,18 +213,16 @@ export function ChatRoom({
   }, [messages]);
 
   function sendMessage() {
-    console.log(isComposition);
-    // if (isComposition) return;
-    // if (contentRef.current) {
-    //   const content = contentRef.current.value.replace(/\n/g, '');
-    //   if (!content || !receiver || !sender || !roomId) return;
-    //   socket?.emit('message', { content, receiver, sender, roomId });
-    //   setLatestMessage((prev) => ({
-    //     ...prev,
-    //     [receiver]: content
-    //   }));
-    //   contentRef.current.value = '';
-    // }
+    if (contentRef.current) {
+      const content = contentRef.current.value.replace(/\n/g, '');
+      if (!content || !receiver || !sender || !roomId) return;
+      socket?.emit('message', { content, receiver, sender, roomId });
+      setLatestMessage((prev) => ({
+        ...prev,
+        [receiver]: content
+      }));
+      contentRef.current.value = '';
+    }
   }
 
   return (
@@ -288,11 +284,15 @@ export function ChatRoom({
           border={0}
           fontSize="sm"
           ref={contentRef}
-          onCompositionStart={onCompositionStart}
-          onCompositionEnd={onCompositionEnd}
+          onCompositionStart={() => {
+            isComposition.current = false;
+          }}
+          onCompositionEnd={() => {
+            isComposition.current = true;
+          }}
           wrap="off"
-          onKeyUp={(e) => {
-            if (e.key === 'Enter') {
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && isComposition.current) {
               sendMessage();
             }
           }}

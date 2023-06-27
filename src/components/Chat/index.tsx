@@ -16,10 +16,6 @@ import useSWR from 'swr';
 import { swrFetch } from '@/utils';
 import NoImage from '@/assets/images/no-image.png';
 
-function handleChatRoom(data: ApiMessages.ChatRoom[]) {
-  return data;
-}
-
 export default function Chat() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLargerMd] = useMediaQuery('(min-width: 768px)');
@@ -54,7 +50,7 @@ export default function Chat() {
           title: data.data.project.title,
           photo: data.data.project.keyVision
         });
-        setChatRooms(handleChatRoom(data.data.chatRooms));
+        setChatRooms(data.data.chatRooms);
       }
     }
   );

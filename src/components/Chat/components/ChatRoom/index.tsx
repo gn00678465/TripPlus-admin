@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { BsSend } from 'react-icons/bs';
 import { CiImageOn } from 'react-icons/ci';
-import { SlEmotsmile, SlSocialYoutube } from 'react-icons/sl';
+import { SlControlStart, SlEmotsmile, SlSocialYoutube } from 'react-icons/sl';
 import { ScrollbarBox } from '@/components';
 import { useEffect, useState, useRef, RefObject, useMemo } from 'react';
 import { apiFetchMessage } from '@/api';
@@ -143,6 +143,8 @@ export function ChatRoom({
   const contentRef: RefObject<HTMLTextAreaElement> = useRef(null);
   const [page, setPage] = useState(1);
   const scrollHeight = useRef(0);
+  const isScrollTop = useRef<boolean>(false);
+  const scrollToBottom = useRef<boolean>(true);
 
   const { messages, setMessages, isLoading, isStop, setIsLoading } =
     useMessagesList(roomId as string, page);
@@ -152,16 +154,7 @@ export function ChatRoom({
       socket.emit('joinRoom', roomId);
       socket.on('message', (data) => {
         setMessages((prev) => prev.concat([data]));
-        if (
-          chatWindowRef.current &&
-          Math.abs(
-            chatWindowRef.current.scrollTop +
-              chatWindowRef.current.offsetHeight -
-              chatWindowRef.current.scrollHeight
-          ) <= 10
-        ) {
-          chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
-        }
+        scrollToBottom.current = true;
       });
     }
 
@@ -178,6 +171,7 @@ export function ChatRoom({
 
     const debounceScroll = debounce(function () {
       if (chatWindow && chatWindow.scrollTop <= 30) {
+        isScrollTop.current = true;
         if (!isStop) {
           setIsLoading(true);
           setPage((prev) => prev + 1);
@@ -189,12 +183,15 @@ export function ChatRoom({
       chatWindow.addEventListener('scroll', debounceScroll);
     }
 
-    if (chatWindow && page === 1) {
+    if (chatWindow && (page === 1 || scrollToBottom.current)) {
       chatWindow.scrollTop = scrollHeight.current = chatWindow.scrollHeight;
+      scrollToBottom.current = false;
     }
-    if (chatWindow && page !== 1) {
+
+    if (chatWindow && isScrollTop.current) {
       const scrollTop = chatWindow.scrollHeight - scrollHeight.current;
       chatWindow.scrollTop = scrollHeight.current = scrollTop;
+      isScrollTop.current = false;
     }
 
     return () => {

@@ -11,7 +11,7 @@ import { ChatItem } from './components';
 import { MdOutlineSearch } from 'react-icons/md';
 import styles from './styles.module.css';
 import ChatMenu from '../Menu';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { AdminContext } from '@/components';
 
 interface ChatListProps extends Omit<FlexProps, 'onClick'> {
@@ -36,7 +36,7 @@ export function ChatList({ chatRooms, onClick, ...rest }: ChatListProps) {
         onClick={() => {
           const roomId = {
             sender: context.id as string,
-            receiver: chatRoom.customerId,
+            receiver: customer._id,
             roomId: chatRoom.message[0].roomId._id,
             name: customer.name
           };

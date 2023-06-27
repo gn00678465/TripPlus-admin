@@ -4,7 +4,7 @@ import { MdKeyboardArrowDown, MdKeyboardArrowLeft } from 'react-icons/md';
 import { ChatRoom, ChatList, ChatRoomDefault, ProjectInfo } from './components';
 import { ScrollbarBox } from '@/components';
 import styles from './styles.module.css';
-import { useEffect, useState, useRef, createContext } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   createSocket,
   Socket,

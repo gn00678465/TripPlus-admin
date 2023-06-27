@@ -150,12 +150,12 @@ export function ChatRoom({
 }: ChatRoomProps) {
   const context = useContext(AdminContext);
   const chatWindowRef: RefObject<HTMLDivElement> = useRef(null);
-  const contentRef: RefObject<HTMLTextAreaElement> = useRef(null);
   const [page, setPage] = useState(1);
   const scrollHeight = useRef(0);
   const isScrollTop = useRef<boolean>(false);
   const scrollToBottom = useRef<boolean>(true);
   const isComposition = useRef(true);
+  const [content, setContent] = useState('');
 
   const { messages, setMessages, isLoading, isStop, setIsLoading } =
     useMessagesList(roomId as string, page);
@@ -165,7 +165,12 @@ export function ChatRoom({
       socket.emit('joinRoom', roomId);
       socket.on('message', (data) => {
         setMessages((prev) => prev.concat([data]));
+        setLatestMessage((prev) => ({
+          ...prev,
+          [data.receiver]: data.content
+        }));
         scrollToBottom.current = true;
+        setContent('');
       });
     }
 
@@ -213,15 +218,10 @@ export function ChatRoom({
   }, [messages]);
 
   function sendMessage() {
-    if (contentRef.current) {
-      const content = contentRef.current.value.replace(/\n/g, '');
+    if (content.replace(/\n/g, '')) {
       if (!content || !receiver || !sender || !roomId) return;
       socket?.emit('message', { content, receiver, sender, roomId });
-      setLatestMessage((prev) => ({
-        ...prev,
-        [receiver]: content
-      }));
-      contentRef.current.value = '';
+      setContent('');
     }
   }
 
@@ -283,7 +283,10 @@ export function ChatRoom({
           placeholder="輸入文字..."
           border={0}
           fontSize="sm"
-          ref={contentRef}
+          value={content}
+          onChange={(e) => {
+            setContent(e.target.value);
+          }}
           onCompositionStart={() => {
             isComposition.current = false;
           }}

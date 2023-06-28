@@ -137,7 +137,7 @@ export default function AdminProject() {
       <Head>
         <title>新增專案-TripPlus+</title>
       </Head>
-      <div className="h-full min-h-screen bg-gray-100">
+      <div className="bg-gray-100">
         <Container
           maxW="760px"
           px={{ base: '4', sm: '6', md: '12' }}

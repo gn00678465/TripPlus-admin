@@ -33,21 +33,30 @@ const Sidebar = ({ name, photo, ...rest }: SidebarProps) => {
     title: string;
     href: string;
     props: Omit<SidebarButtonProps, '_href' | 'isActive'>;
+    activeUrl: string[];
   }[] = [
     {
       title: 'Dashboard',
       href: `/admin/${id}/dashboard`,
-      props: { icon: SlGrid, fontWeight: { base: 400 } }
+      props: { icon: SlGrid, fontWeight: { base: 400 } },
+      activeUrl: [`/admin/${id}/dashboard`]
     },
     {
       title: '專案管理',
       href: `/admin/${id}/settings`,
-      props: { icon: FaRegEdit, fontWeight: { base: 500 } }
+      props: { icon: FaRegEdit, fontWeight: { base: 500 } },
+      activeUrl: [
+        `/admin/${id}/settings`,
+        `/admin/${id}/content`,
+        `/admin/${id}/team`,
+        `/admin/${id}/plan`
+      ]
     },
     {
       title: '訂單管理',
       href: `/admin/${id}/order`,
-      props: { icon: AiOutlineFileText, fontWeight: { base: 500 } }
+      props: { icon: AiOutlineFileText, fontWeight: { base: 500 } },
+      activeUrl: [`/admin/${id}/order`]
     }
   ];
 
@@ -110,7 +119,7 @@ const Sidebar = ({ name, photo, ...rest }: SidebarProps) => {
             <SidebarButton
               key={item.href}
               _href={item.href}
-              isActive={item.href === router.asPath}
+              isActive={item.activeUrl.includes(router.asPath)}
               {...item.props}
             >
               {item.title}

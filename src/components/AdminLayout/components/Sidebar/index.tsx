@@ -54,9 +54,9 @@ const Sidebar = ({ name, photo, ...rest }: SidebarProps) => {
     },
     {
       title: '訂單管理',
-      href: `/admin/${id}/order`,
+      href: `/admin/${id}/orders`,
       props: { icon: AiOutlineFileText, fontWeight: { base: 500 } },
-      activeUrl: [`/admin/${id}/order`]
+      activeUrl: [`/admin/${id}/orders`]
     }
   ];
 

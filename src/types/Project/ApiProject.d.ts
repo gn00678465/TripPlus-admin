@@ -58,3 +58,77 @@ declare namespace ApiProjectContent {
     content: string;
   };
 }
+
+declare namespace ApiProjectPlan {
+  interface Plan {
+    _id: string;
+    title: string;
+    price: number;
+    content: string;
+    isAllowMulti: number;
+  }
+
+  interface PlanBody {
+    title: string;
+    price: number;
+    content: string;
+    isAllowMulti: number;
+  }
+}
+
+declare namespace ApiProjectOrders {
+  interface Order {
+    _id: string;
+    member: string;
+    projectId: {
+      _id: string;
+      title: string;
+      progressRate: null;
+      countDownDays: number;
+      type: string;
+      id: string;
+    };
+    productId: null;
+    planId: string;
+    payment: 0 | 1;
+    fundPrice: number;
+    count: number;
+    shipment: 0 | 1;
+    shipPrice: number;
+    extraFund: null;
+    bonusDiscount: number;
+    total: number;
+    buyerName: string;
+    buyerPhone: string;
+    buyerEmail: string;
+    buyerAddress: string;
+    shipAddress: string;
+    recipient: string;
+    recipientPhone: string;
+    recipientEmail: string;
+    creditCard: string;
+    note: string;
+    bonus: null;
+    paidAt: string;
+    paymentStatus: 0 | 1;
+    shipmentId: string;
+    shipDate: string;
+    status: 0 | 1;
+    shipmentStatus: 0 | 1;
+    isCommented: 0 | 1;
+    createdAt: string;
+    updatedAt: string;
+    transactionId: string;
+    __v: number;
+  }
+
+  interface OrderList {
+    total: number;
+    totalPages: number;
+    page: number;
+    startIndex: number;
+    endIndex: number;
+    limit: number;
+    items: Order[];
+  }
+}

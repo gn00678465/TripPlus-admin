@@ -82,7 +82,7 @@ const SwitchField = ({
           w="full"
           visibility={text ? 'visible' : 'hidden'}
           pl={1}
-          fontSize="20px"
+          fontSize="16px"
           lineHeight="32px"
         >
           {text}

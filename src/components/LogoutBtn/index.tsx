@@ -11,7 +11,7 @@ export function LogoutBtn({ ...rest }: LogoutBtnProps) {
   function handleLogout() {
     useAuthStore.persist.clearStorage();
     Cookies.remove('token');
-    router.push('/');
+    router.push('/admin/login');
   }
 
   return (
@@ -26,7 +26,7 @@ export function LogoutBtn({ ...rest }: LogoutBtnProps) {
       onClick={handleLogout}
       {...rest}
     >
-      登出後台
+      登出
     </Button>
   );
 }

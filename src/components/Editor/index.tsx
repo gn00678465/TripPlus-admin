@@ -75,6 +75,8 @@ export default function CKeditor({
           <style jsx global>{`
             .ck-editor__editable_inline {
               min-height: 400px;
+              border: 1px solid #d3d3d3 !important;
+              border-top-width: 0px !important;
             }
           `}</style>
         </div>

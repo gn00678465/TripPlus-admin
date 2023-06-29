@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import useSWR from 'swr';
 import { useUserStore } from '@/store';
 import { apiFetchUserInfo } from '@/api';
@@ -11,9 +12,14 @@ export function useUserData() {
     '/api/user/data',
     () => swrFetch(apiFetchUserInfo()),
     {
+      revalidateOnFocus: false,
       onSuccess(data, key, config) {
         if (data.data) {
-          setUserData({ name: data.data.name, photo: data.data.photo });
+          setUserData({
+            name: data.data.name,
+            photo: data.data.photo,
+            id: data.data._id
+          });
         }
       }
     }
@@ -21,6 +27,7 @@ export function useUserData() {
 
   return {
     name: data?.data.name,
-    photo: data?.data.photo
+    photo: data?.data.photo,
+    id: data?.data._id
   };
 }

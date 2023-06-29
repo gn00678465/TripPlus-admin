@@ -512,9 +512,7 @@ const AdminOrder = () => {
                 pagination={pagination}
                 loading={isLoading}
                 manualSorting={true}
-                onSortingChange={(value) => {
-                  setSorting(value);
-                }}
+                onSortingChange={setSorting}
               />
               <div
                 ref={paginationRef}

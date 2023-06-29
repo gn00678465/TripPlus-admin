@@ -10,3 +10,4 @@ export * from './Pagination';
 export * from './Table';
 export * from './Modal';
 export * from './AlertModal';
+export * from './LogoutBtn';

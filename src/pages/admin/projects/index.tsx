@@ -24,7 +24,7 @@ import {
 } from '@chakra-ui/react';
 import { useMediaQuery } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { DataTable, Pagination } from '@/components';
+import { DataTable, Pagination, LogoutBtn } from '@/components';
 import { MdAdd, MdArrowDropDown, MdOutlineSearch } from 'react-icons/md';
 import { FiEdit } from 'react-icons/fi';
 import { IoNewspaperOutline } from 'react-icons/io5';
@@ -319,6 +319,7 @@ const AdminProjects = () => {
       <Head>
         <title>專案列表-TripPlus+</title>
       </Head>
+      <LogoutBtn position="absolute" top={2} right={10} />
       <Flex h="full" w="full" flexDirection="column">
         <div
           ref={headerRef}
@@ -433,5 +434,5 @@ const AdminProjects = () => {
 export default AdminProjects;
 
 AdminProjects.getLayout = function (page: ReactElement) {
-  return <BlankLayout>{page}</BlankLayout>;
+  return <BlankLayout position="relative">{page}</BlankLayout>;
 };

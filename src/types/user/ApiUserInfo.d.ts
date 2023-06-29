@@ -10,5 +10,6 @@ declare namespace ApiUserData {
     birthday: string;
     country: string;
     introduction: string;
+    _id: string;
   }
 }

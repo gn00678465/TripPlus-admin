@@ -1,8 +1,12 @@
 import { Avatar, Box, Text, Flex, BoxProps } from '@chakra-ui/react';
 
-interface ChatItemProps extends BoxProps {}
+interface ChatItemProps extends BoxProps {
+  name: string;
+  content: string;
+  photo?: string;
+}
 
-export function ChatItem(props: ChatItemProps) {
+export function ChatItem({ name, content, photo, ...rest }: ChatItemProps) {
   return (
     <Box
       py={3}
@@ -11,7 +15,7 @@ export function ChatItem(props: ChatItemProps) {
       _hover={{
         bg: 'gray.100'
       }}
-      {...props}
+      {...rest}
     >
       <Flex
         columnGap={2}
@@ -20,7 +24,7 @@ export function ChatItem(props: ChatItemProps) {
         w="full"
       >
         <div className="h-10 w-10 shrink-0">
-          <Avatar size="full"></Avatar>
+          <Avatar size="full" src={photo}></Avatar>
         </div>
         <Box
           className="space-y-1"
@@ -30,7 +34,7 @@ export function ChatItem(props: ChatItemProps) {
           textOverflow="ellipsis"
         >
           <Text fontSize="sm" color="gray.400">
-            abc123456
+            {name}
           </Text>
           <Text
             fontSize="xs"
@@ -39,7 +43,7 @@ export function ChatItem(props: ChatItemProps) {
             whiteSpace="nowrap"
             textOverflow="ellipsis"
           >
-            您好，我想請問一下這個活動的偏鄉地區是在哪邊呢？
+            {content}
           </Text>
         </Box>
       </Flex>

@@ -33,6 +33,7 @@ import { currency, safeAwait } from '@/utils';
 import { useElementSize, usePagination, useWindowSize } from '@/hooks';
 import useSwr from 'swr';
 import { apiFetchProjects } from '@/api';
+import { useTeamStore } from '@/store';
 
 interface SelectOptions {
   value: string;
@@ -177,6 +178,8 @@ const AdminProjects = () => {
     return 'auto';
   }, [windowSize, headerH, toolbarH, paginationH, isLargeDesktop]);
 
+  const { setTeamId } = useTeamStore();
+
   const columnHelper = createColumnHelper<ApiProject.ProjectItem>();
 
   const columns = [
@@ -192,7 +195,11 @@ const AdminProjects = () => {
     }),
     columnHelper.accessor('title', {
       cell: (info) => (
-        <Link href={`/admin/${info.row.original._id}/dashboard`} as={NextLink}>
+        <Link
+          href={`/admin/${info.row.original._id}/dashboard`}
+          as={NextLink}
+          onClick={() => setTeamId(info.row.original.teamId._id)}
+        >
           {info.getValue()}
         </Link>
       ),
@@ -200,7 +207,15 @@ const AdminProjects = () => {
       size: 200
     }),
     columnHelper.accessor('teamId', {
-      cell: (info) => info.getValue().title,
+      cell: (info) => (
+        <Link
+          href={`/admin/${info.row.original._id}/team`}
+          as={NextLink}
+          onClick={() => setTeamId(info.row.original.teamId._id)}
+        >
+          {info.getValue().title}
+        </Link>
+      ),
       header: '提案團隊',
       size: 50
     }),
@@ -223,6 +238,7 @@ const AdminProjects = () => {
             icon={<Icon as={RiDashboard3Line} />}
             variant="outline"
             onClick={() => {
+              setTeamId(info.row.original.teamId._id);
               router.push(`/admin/${info.row.original._id}/dashboard`);
             }}
           ></IconButton>
@@ -233,6 +249,7 @@ const AdminProjects = () => {
             icon={<Icon as={FiEdit} />}
             variant="outline"
             onClick={() => {
+              setTeamId(info.row.original.teamId._id);
               router.push(`/admin/${info.row.original._id}/settings`);
             }}
           ></IconButton>
@@ -243,6 +260,7 @@ const AdminProjects = () => {
             icon={<Icon as={IoNewspaperOutline} />}
             variant="outline"
             onClick={() => {
+              setTeamId(info.row.original.teamId._id);
               router.push(`/admin/${info.row.original._id}/orders`);
             }}
           ></IconButton>

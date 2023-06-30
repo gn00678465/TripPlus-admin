@@ -1,5 +1,5 @@
 declare namespace Service {
-  type SuccessResult<T> = T extends unknown
+  type SuccessResult<T> = T extends null
     ? {
         status: 'Success';
         message?: string;

@@ -9,10 +9,15 @@ const colors = {
   black: '#000',
   white: '#fff',
   primary: tailwind.theme?.colors?.primary,
-  'primary-emphasis': tailwind.theme?.colors?.['primary-emphasis'],
   secondary: tailwind.theme?.colors?.secondary,
   success: tailwind.theme?.colors?.success,
-  light: tailwind.theme?.colors?.light
+  light: tailwind.theme?.colors?.light,
+  gray: tailwind.theme?.colors?.gray,
+  info: tailwind.theme?.colors?.info,
+  error: tailwind.theme?.colors?.error
 };
 
-export const theme = extendTheme({ colors });
+export const theme = extendTheme({
+  colors,
+  breakpoints: tailwind.theme.screens
+});

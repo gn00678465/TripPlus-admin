@@ -32,7 +32,7 @@ export const FormItem = ({
     <FormControl flexShrink={0} isInvalid={!!errors[path]} {...rest}>
       <Box
         display={{ base: 'block', sm: 'flex', md: 'block', '2xl': 'flex' }}
-        alignItems="center"
+        alignItems="baseline"
       >
         <FormLabel
           mb={{ base: 2, '2xl': 0 }}

@@ -79,7 +79,7 @@ const KeyVisionSettings = ({
   const { trigger: triggerUpload } = useUploadImage();
   const toast = useToast();
 
-  const { trigger } = useSWRMutation(
+  const { trigger, isMutating } = useSWRMutation(
     id ? `/admin/project/${id}/info/image` : null,
     (key, { arg }: { arg: Project.FormKeyVisionSettings }) =>
       swrFetch(apiPatchProjectImage(id as string, arg))
@@ -209,6 +209,7 @@ const KeyVisionSettings = ({
               type="submit"
               colorScheme="primary"
               variant="outline"
+              isLoading={isMutating}
             >
               儲存
             </Button>
@@ -228,7 +229,7 @@ const BasicSettings = ({
 }: SettingsProps) => {
   const methods = useForm<Project.FormBasicSettings>();
   const toast = useToast();
-  const { trigger } = useSWRMutation(
+  const { trigger, isMutating } = useSWRMutation(
     id ? `/admin/project/${id}/info/settings` : null,
     (key, { arg }: { arg: Project.FormBasicSettings }) =>
       swrFetch(apiPatchProjInfoSetting(id as string, arg))
@@ -536,6 +537,7 @@ const BasicSettings = ({
               type="submit"
               colorScheme="primary"
               variant="outline"
+              isLoading={isMutating}
             >
               儲存
             </Button>
@@ -555,7 +557,7 @@ const OptionsSettings = ({
 }: SettingsProps) => {
   const methods = useForm<Project.FormOptionSettings>();
   const toast = useToast();
-  const { trigger } = useSWRMutation(
+  const { trigger, isMutating } = useSWRMutation(
     id ? `/admin/project/${id}/info/abled` : null,
     (key, { arg }: { arg: Project.FormOptionSettings }) =>
       swrFetch(apiPatchProjectEnable(id as string, arg))
@@ -661,6 +663,7 @@ const OptionsSettings = ({
               type="submit"
               colorScheme="primary"
               variant="outline"
+              isLoading={isMutating}
             >
               儲存
             </Button>
@@ -678,20 +681,22 @@ const PaymentSettings = ({
   projectData,
   id
 }: SettingsProps) => {
-  const paymentOptions: { label: string; value: 0 | 1 }[] = [
-    {
-      label: '只使用信用卡付款',
-      value: 0
-    },
-    {
-      label: '信用卡 + ATM付款 + 超商付款',
-      value: 1
-    }
-  ];
+  const paymentOptions: { label: string; value: 0 | 1; disabled?: boolean }[] =
+    [
+      {
+        label: '只使用信用卡付款',
+        value: 0
+      },
+      {
+        label: '信用卡 + ATM付款 + 超商付款',
+        disabled: true,
+        value: 1
+      }
+    ];
   const toast = useToast();
   const methods = useForm<Project.FormPaymentSettings>();
 
-  const { trigger } = useSWRMutation(
+  const { trigger, isMutating } = useSWRMutation(
     id ? `/admin/project/${id}/info/payment` : null,
     (key, { arg }: { arg: Project.FormPaymentSettings }) =>
       swrFetch(apiPatchProjInfoPayment(id as string, arg))
@@ -705,6 +710,8 @@ const PaymentSettings = ({
       payment: projectData?.payment
     });
   }, [methods, projectData]);
+
+  const watchPayment = methods.watch('payment');
 
   const onSubmit = (data: Project.FormPaymentSettings) => {
     trigger(data, {
@@ -753,7 +760,12 @@ const PaymentSettings = ({
                   }}
                 >
                   {paymentOptions.map((opt) => (
-                    <Radio key={opt.value} value={`${opt.value}`} mr={2}>
+                    <Radio
+                      key={opt.value}
+                      value={`${opt.value}`}
+                      mr={2}
+                      isDisabled={opt?.disabled}
+                    >
                       {opt.label}
                     </Radio>
                   ))}
@@ -813,6 +825,7 @@ const PaymentSettings = ({
                 defaultValue={5}
                 min={0}
                 max={15}
+                isDisabled={watchPayment === 0}
               >
                 <NumberInputField
                   p={2}
@@ -845,6 +858,7 @@ const PaymentSettings = ({
                 defaultValue={5}
                 min={0}
                 max={15}
+                isDisabled={watchPayment === 0}
               >
                 <NumberInputField
                   p={2}
@@ -874,6 +888,7 @@ const PaymentSettings = ({
               type="submit"
               colorScheme="primary"
               variant="outline"
+              isLoading={isMutating}
             >
               儲存
             </Button>

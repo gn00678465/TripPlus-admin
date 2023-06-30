@@ -5,7 +5,8 @@ import {
   getCoreRowModel,
   ColumnDef,
   SortingState,
-  getSortedRowModel
+  getSortedRowModel,
+  Updater
 } from '@tanstack/react-table';
 import {
   Table,
@@ -34,25 +35,10 @@ export interface DataTableProps<T extends object> extends TableContainerProps {
   loading?: boolean;
   manualSorting?: boolean;
   sorting?: SortingState;
-  onSortingChange?: (arg: SortingState) => void;
+  onSortingChange?: (arg: SortingState | Updater<SortingState>) => void;
 }
 
-function Asc() {
-  return (
-    <div className="relative">
-      <Icon as={MdArrowDropUp} boxSize={5} position="absolute" bottom={-1.5} />
-      <Icon
-        as={MdArrowDropDown}
-        boxSize={5}
-        position="absolute"
-        top={-1.5}
-        opacity={0.5}
-      />
-    </div>
-  );
-}
-
-function Desc() {
+function SortArrows(sort?: 'asc' | 'desc') {
   return (
     <div className="relative">
       <Icon
@@ -60,9 +46,15 @@ function Desc() {
         boxSize={5}
         position="absolute"
         bottom={-1.5}
-        opacity={0.5}
+        opacity={sort === 'asc' ? 1 : 0.5}
       />
-      <Icon as={MdArrowDropDown} boxSize={5} position="absolute" top={-1.5} />
+      <Icon
+        as={MdArrowDropDown}
+        boxSize={5}
+        position="absolute"
+        top={-1.5}
+        opacity={sort === 'desc' ? 1 : 0.5}
+      />
     </div>
   );
 }
@@ -79,18 +71,15 @@ export function DataTable<T extends object>({
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  useEffect(() => {
-    if (onSortingChange) {
-      onSortingChange(sorting);
-    }
-  }, [sorting, onSortingChange]);
-
   const table = useReactTable({
     columns,
     data,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      setSorting(updater);
+      onSortingChange?.(updater);
+    },
     pageCount: pagination?.pageCount,
     state: {
       pagination: {
@@ -170,9 +159,9 @@ export function DataTable<T extends object>({
                         header.getContext()
                       )}
                       {{
-                        asc: Asc(),
-                        desc: Desc()
-                      }[header.column.getIsSorted() as string] ?? null}
+                        asc: SortArrows('asc'),
+                        desc: SortArrows('desc')
+                      }[header.column.getIsSorted() as string] ?? SortArrows()}
                     </div>
                   </Th>
                 );

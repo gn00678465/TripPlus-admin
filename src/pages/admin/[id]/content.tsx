@@ -33,7 +33,7 @@ export default function ProjectContent() {
     return data?.data.content || '';
   }, [data]);
 
-  const { trigger } = useSWRMutation(
+  const { trigger, isMutating } = useSWRMutation(
     id ? `/admin/project/${id}/info/content` : null,
     (key, { arg }: { arg: string }) =>
       swrFetch(apiPostProjectInfoContent(id as string, { content: arg }))
@@ -102,7 +102,11 @@ export default function ProjectContent() {
               >
                 取消
               </Button>
-              <Button colorScheme="primary" onClick={handleSaveContent}>
+              <Button
+                colorScheme="primary"
+                isLoading={isMutating}
+                onClick={handleSaveContent}
+              >
                 儲存
               </Button>
             </Center>

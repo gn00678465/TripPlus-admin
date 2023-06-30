@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useImmerReducer } from 'use-immer';
 import { debounce } from 'lodash-es';
 import type { ReactElement } from 'react';
@@ -23,14 +23,19 @@ import {
   Link
 } from '@chakra-ui/react';
 import { useMediaQuery } from '@chakra-ui/react';
-import { createColumnHelper } from '@tanstack/react-table';
-import { DataTable, Pagination } from '@/components';
+import { createColumnHelper, SortingState } from '@tanstack/react-table';
+import { DataTable, Pagination, LogoutBtn } from '@/components';
 import { MdAdd, MdArrowDropDown, MdOutlineSearch } from 'react-icons/md';
 import { FiEdit } from 'react-icons/fi';
 import { IoNewspaperOutline } from 'react-icons/io5';
 import { RiDashboard3Line } from 'react-icons/ri';
 import { currency, safeAwait } from '@/utils';
-import { useElementSize, usePagination, useWindowSize } from '@/hooks';
+import {
+  useElementSize,
+  usePagination,
+  useWindowSize,
+  usePaginationState
+} from '@/hooks';
 import useSwr from 'swr';
 import { apiFetchProjects } from '@/api';
 import { useTeamStore } from '@/store';
@@ -38,6 +43,17 @@ import { useTeamStore } from '@/store';
 interface SelectOptions {
   value: string;
   label: string;
+}
+
+interface QueryState {
+  query?: null | string;
+  status?: null | string;
+  type?: null | string;
+}
+
+interface QueryAction {
+  type: 'setQuery' | 'setStatus' | 'setType';
+  payload: string;
 }
 
 const type: SelectOptions[] = [
@@ -65,6 +81,50 @@ const status: SelectOptions[] = [
     label: '已結束'
   }
 ];
+
+function handleQueryString(
+  pagination: usePaginationState,
+  query: QueryState,
+  sorting: SortingState
+) {
+  const [sort] = sorting;
+
+  let sortObj: Record<string, string> = {};
+
+  if (sort) {
+    switch (sort.id) {
+      case 'status':
+        sortObj.sortStatus = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'type':
+        sortObj.sortType = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'title':
+        sortObj.sortTitle = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'teamId':
+        sortObj.sortTeam = sort.desc ? 'desc' : 'asc';
+        break;
+      case 'target':
+        sortObj.sortSum = sort.desc ? 'desc' : 'asc';
+        break;
+      default:
+        sortObj = {};
+        break;
+    }
+  } else {
+    sortObj = {};
+  }
+
+  const params = {
+    page: pagination.page,
+    limit: pagination.pageSize,
+    ...query,
+    ...sortObj
+  };
+
+  return new URLSearchParams(params as any).toString();
+}
 
 const AdminProjects = () => {
   const router = useRouter();
@@ -95,17 +155,6 @@ const AdminProjects = () => {
     defaultPage: 1,
     defaultPageSize: 10
   });
-
-  interface QueryState {
-    query?: null | string;
-    status?: null | string;
-    type?: null | string;
-  }
-
-  interface QueryAction {
-    type: 'setQuery' | 'setStatus' | 'setType';
-    payload: string;
-  }
 
   const initQuery: QueryState = {};
   const [query, dispatch] = useImmerReducer(
@@ -139,21 +188,17 @@ const AdminProjects = () => {
     },
     initQuery
   );
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const qs = useMemo(() => {
-    const params = {
-      page: pagination.page,
-      limit: pagination.pageSize,
-      ...query
-    };
-    return new URLSearchParams(params as any).toString();
-  }, [pagination, query]);
+  const qs = useMemo(
+    () => handleQueryString(pagination, query, sorting),
+    [pagination, query, sorting]
+  );
 
   // query
   const { data: projectListData, isLoading } = useSwr(
     ['/admin/projects', qs],
     async ([key, qs]) => {
-      console.log(qs);
       const [err, data] = await safeAwait(apiFetchProjects(qs));
       return new Promise<ApiProject.ProjectList>((resolve, reject) => {
         if (data) {
@@ -336,8 +381,9 @@ const AdminProjects = () => {
   return (
     <>
       <Head>
-        <title>專案列表</title>
+        <title>專案列表-TripPlus+</title>
       </Head>
+      <LogoutBtn position="absolute" top={2} right={10} />
       <Flex h="full" w="full" flexDirection="column">
         <div
           ref={headerRef}
@@ -420,6 +466,8 @@ const AdminProjects = () => {
                 data={projectListData?.items || []}
                 pagination={pagination}
                 loading={isLoading}
+                manualSorting={true}
+                onSortingChange={setSorting}
               ></DataTable>
               <div
                 ref={paginationRef}
@@ -452,5 +500,5 @@ const AdminProjects = () => {
 export default AdminProjects;
 
 AdminProjects.getLayout = function (page: ReactElement) {
-  return <BlankLayout>{page}</BlankLayout>;
+  return <BlankLayout position="relative">{page}</BlankLayout>;
 };

@@ -24,6 +24,7 @@ export const SwitchField = ({
           pl={0}
           fontSize="md"
           lineHeight="32px"
+          wordBreak="break-all"
         >
           {content}
         </Text>

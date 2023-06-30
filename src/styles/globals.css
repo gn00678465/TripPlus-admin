@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+/* @import url('./content-styles.css'); */
 :root {
   --foreground-rgb: 26, 26, 26;
 }
@@ -19,7 +19,7 @@ body {
 
 body {
   min-height: 100%;
-  color: rgb(var(--foreground-rgb));
+  height: 100%;
 }
 
 #__next {

@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Image from 'next/image';
+import { useState } from 'react';
 import {
   Card,
   CardHeader,
@@ -31,6 +32,7 @@ type FormInputs = {
 export default function AdminLogin() {
   const router = useRouter();
   const toast = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const setUserInfo = useAuthStore((state) => state.setUserInfo);
   const {
     handleSubmit,
@@ -39,6 +41,7 @@ export default function AdminLogin() {
   } = useForm<FormInputs>();
 
   const onSubmit = async (data: FormInputs) => {
+    setIsLoading(true);
     const [err, res] = await safeAwait(login(data));
     if (err) {
       toast({
@@ -49,6 +52,7 @@ export default function AdminLogin() {
         duration: 5000,
         isClosable: true
       });
+      return setIsLoading(false);
     }
     if (res) {
       if (!res.data.roles.includes('admin')) {
@@ -60,9 +64,11 @@ export default function AdminLogin() {
           isClosable: true
         });
         router.push('/');
+        return setIsLoading(false);
       } else {
         setUserInfo(res.data);
         router.push('/admin/projects');
+        return setIsLoading(false);
       }
     }
   };
@@ -162,7 +168,12 @@ export default function AdminLogin() {
               </Stack>
             </CardBody>
             <CardFooter justify="center" py="12">
-              <Button colorScheme="primary" type="submit" px="10">
+              <Button
+                colorScheme="primary"
+                type="submit"
+                px="10"
+                isLoading={isLoading}
+              >
                 登入
               </Button>
             </CardFooter>

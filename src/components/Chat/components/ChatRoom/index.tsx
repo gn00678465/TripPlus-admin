@@ -126,7 +126,7 @@ function groupMessages(arr: Message[]) {
   arr.reverse().forEach((item) => {
     if (!currentDate) {
       currentDate = item.date;
-      map.set(currentDate as string, [item]);
+      map.set(currentDate as string, []);
     }
     if (currentDate && !compare(item.date as string)) {
       map.get(currentDate)?.push(item);

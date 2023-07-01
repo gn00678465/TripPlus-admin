@@ -77,23 +77,24 @@ function handleMessage(data: ApiMessages.Message): Message {
   };
 }
 
-function useMessagesList(roomId: string, page: number) {
-  const [messages, setMessages] = useState<Message[]>([]);
+function useMessagesList(
+  roomId: string,
+  page: number,
+  setMessages: Dispatch<SetStateAction<Message[]>>
+) {
   const [isStop, setIsStop] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { data } = useSWR(
-    roomId ? `/admin/${roomId}/messages?page=${page}` : null,
-    () => swrFetch(swrFetch(apiFetchMessage(roomId as string, page, 10))),
+  const { data, mutate } = useSWR(
+    roomId ? `/admin/${roomId}/messages?page=${page * 10}` : null,
+    () => swrFetch(swrFetch(apiFetchMessage(roomId as string, 1, page * 10))),
     {
       revalidateOnFocus: false,
       onSuccess(data, key, config) {
         if (data.data.length < 10) {
           setIsStop(true);
         }
-        setMessages((prev) =>
-          data.data.reverse().map(handleMessage).concat(prev)
-        );
+        setMessages((prev) => data.data.map(handleMessage).reverse());
         setIsLoading(false);
       },
       onError(err, key, config) {
@@ -103,11 +104,11 @@ function useMessagesList(roomId: string, page: number) {
   );
 
   return {
-    messages: useMemo(() => messages, [messages]),
     isLoading,
-    setMessages,
     isStop,
-    setIsLoading
+    setIsStop,
+    setIsLoading,
+    mutate
   };
 }
 
@@ -124,7 +125,7 @@ function groupMessages(arr: Message[]) {
   arr.forEach((item) => {
     if (!currentDate) {
       currentDate = item.date;
-      map.set(currentDate as string, [item]);
+      map.set(currentDate as string, []);
     }
     if (currentDate && !compare(item.date as string)) {
       map.get(currentDate)?.push(item);
@@ -156,15 +157,27 @@ export function ChatRoom({
   const scrollToBottom = useRef<boolean>(true);
   const isComposition = useRef(true);
   const [content, setContent] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const { messages, setMessages, isLoading, isStop, setIsLoading } =
-    useMessagesList(roomId as string, page);
+  const { isLoading, isStop, setIsLoading, setIsStop, mutate } =
+    useMessagesList(roomId as string, page, setMessages);
+
+  useEffect(() => {
+    setIsLoading(true);
+    return () => {};
+  }, [roomId]);
 
   useEffect(() => {
     if (socket && roomId) {
       socket.emit('joinRoom', roomId);
       socket.on('message', (data) => {
-        setMessages((prev) => prev.concat([data]));
+        setMessages((prev) => [
+          ...prev,
+          {
+            ...data,
+            date: dayjs.utc().format('YYYY-MM-DDTHH:mm:ss"Z"')
+          }
+        ]);
         const receiver =
           data.sender === context.id ? data.receiver : data.sender;
         setLatestMessage((prev) => ({
@@ -178,6 +191,9 @@ export function ChatRoom({
 
     return () => {
       if (socket && roomId) {
+        setPage(1);
+        setIsStop(false);
+        setMessages([]);
         socket?.emit('leaveRoom', roomId);
         socket.off('message');
       }
@@ -228,7 +244,7 @@ export function ChatRoom({
   }
 
   return (
-    <Box bg="gray.100" {...rest}>
+    <Box key={roomId} bg="gray.100" {...rest}>
       <Text py={2} pl={4} fontSize="xs" color="gray.400" bg="white">
         {name}
       </Text>
@@ -268,10 +284,18 @@ export function ChatRoom({
                     {value.map((msg, index) => {
                       if (msg.sender === sender) {
                         return (
-                          <Receiver key={key + index} text={msg.content} />
+                          <Receiver
+                            key={key + index + msg.sender}
+                            text={msg.content}
+                          />
                         );
                       }
-                      return <Sender key={key + index} text={msg.content} />;
+                      return (
+                        <Sender
+                          key={key + index + msg.receiver}
+                          text={msg.content}
+                        />
+                      );
                     })}
                   </Box>
                 </div>

@@ -28,7 +28,7 @@ export function ChatList({
 }: ChatListProps) {
   const context = useContext(AdminContext);
 
-  function renderChatItem(chatRoom: ApiMessages.ChatRoom) {
+  function renderChatItem(chatRoom: ApiMessages.ChatRoom, index: number) {
     const isCurrentUser =
       chatRoom.message[0].receiver._id === context.id ? true : false;
 
@@ -38,7 +38,7 @@ export function ChatList({
 
     return (
       <li
-        key={chatRoom.customerId}
+        key={index}
         onClick={() => {
           const roomId = {
             sender: context.id as string,

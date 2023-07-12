@@ -1,15 +1,22 @@
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, createContext } from 'react';
 import { Box, BoxProps } from '@chakra-ui/react';
+import { useWindowSize } from '@/hooks';
 
-interface LayoutProps extends BoxProps {
+export interface BlankLayoutProps extends BoxProps {
   children: ReactNode;
 }
 
-const Layout: FC<LayoutProps> = ({ children, ...rest }) => {
+export const WindowSizeContext = createContext({ width: 0, height: 0 });
+
+const Layout: FC<BlankLayoutProps> = ({ children, ...rest }) => {
+  const windowSize = useWindowSize({});
+
   return (
-    <Box h="calc(100vh)" {...rest}>
-      {children}
-    </Box>
+    <WindowSizeContext.Provider value={windowSize}>
+      <Box minH="calc(100vh)" h="full" {...rest}>
+        {children}
+      </Box>
+    </WindowSizeContext.Provider>
   );
 };
 

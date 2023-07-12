@@ -1,10 +1,10 @@
 import Head from 'next/head';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { useState, useRef, useMemo, memo } from 'react';
+import { useState, useRef, useMemo, useContext } from 'react';
 import { useImmerReducer } from 'use-immer';
 import type { ReactElement } from 'react';
-import { BlankLayout } from '@/components';
+import { BlankLayout, WindowSizeContext } from '@/components';
 import {
   Heading,
   Button,
@@ -31,12 +31,7 @@ import { FiEdit } from 'react-icons/fi';
 import { IoNewspaperOutline } from 'react-icons/io5';
 import { RiDashboard3Line } from 'react-icons/ri';
 import { currency, swrFetch } from '@/utils';
-import {
-  useElementSize,
-  usePagination,
-  useWindowSize,
-  useLatest
-} from '@/hooks';
+import { useElementSize, usePagination, useLatest } from '@/hooks';
 import useSwr from 'swr';
 import { apiFetchProjects } from '@/api';
 import { useTeamStore } from '@/store';
@@ -133,7 +128,7 @@ const AdminProjects = () => {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
 
-  const windowSize = useWindowSize({});
+  const windowSize = useContext(WindowSizeContext);
   const headerSize = useElementSize(headerRef);
   const toolbarSize = useElementSize(toolbarRef);
   const paginationSize = useElementSize(paginationRef);
@@ -389,11 +384,11 @@ const AdminProjects = () => {
       <Head>
         <title>專案列表-TripPlus+</title>
       </Head>
-      <LogoutBtn position="absolute" top={2} right={10} />
+      <LogoutBtn position="absolute" top={8} right={{ base: 3, md: 20 }} />
       <Flex h="full" w="full" flexDirection="column">
         <div
           ref={headerRef}
-          className="flex shrink-0 items-center justify-between p-3 pt-12 md:px-12"
+          className="flex shrink-0 items-center justify-between p-3 pt-10 md:px-20 md:pt-20"
         >
           <Heading as="h2" size="xl" noOfLines={1}>
             專案列表
@@ -410,7 +405,7 @@ const AdminProjects = () => {
         </div>
         <div
           ref={toolbarRef}
-          className="shrink-0 bg-gray-200 p-3 sm:px-12  md:flex"
+          className="shrink-0 bg-gray-200 p-3 md:flex  md:px-20"
         >
           <div className="hidden sm:block sm:shrink-0 md:w-0 xl:w-1/2"></div>
           <div className="flex w-full flex-col items-center justify-end gap-y-3 sm:flex-row sm:gap-2 sm:gap-y-0">
@@ -440,8 +435,9 @@ const AdminProjects = () => {
         </div>
         <Box
           flexGrow={1}
-          px={{ base: 3, md: 12 }}
-          py={{ base: 3 }}
+          px={{ base: 3, md: 20 }}
+          pt={{ base: 5 }}
+          pb={{ base: 10 }}
           backgroundColor="gray.100"
         >
           <Card h="full">

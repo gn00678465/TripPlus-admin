@@ -1,4 +1,4 @@
-export { default as BlankLayout } from './BlankLayout';
+export { default as BlankLayout, WindowSizeContext } from './BlankLayout';
 export { default as AdminLayout, AdminContext } from './AdminLayout';
 export { default as ProjectWrap } from './ProjectWrap';
 export { default as ImageFallback } from './ImageFallback';

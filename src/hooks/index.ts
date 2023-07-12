@@ -6,3 +6,4 @@ export * from './useFileReader';
 export * from './service';
 export * from './useUserData';
 export * from './useLatest';
+export * from './useRenderCount';

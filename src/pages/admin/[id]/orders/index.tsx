@@ -1,14 +1,11 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useState, useRef, useMemo, Dispatch, useEffect } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useImmerReducer } from 'use-immer';
-import { debounce } from 'lodash-es';
-import type { ReactElement } from 'react';
-import { AdminLayout, ModalContainer, ModalContainerProps } from '@/components';
+import { ReactElement, forwardRef, useImperativeHandle } from 'react';
+import { AdminLayout, ModalContainer, SearchBar, TPSelect } from '@/components';
 import {
   Heading,
-  InputGroup,
-  InputRightElement,
   Input,
   Card,
   CardBody,
@@ -19,33 +16,27 @@ import {
   useDisclosure,
   FormControl,
   FormLabel,
-  Text,
-  Select
+  Text
 } from '@chakra-ui/react';
 import { useMediaQuery } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
 import { DataTable, Pagination } from '@/components';
-import { MdOutlineSearch, MdCheckCircle } from 'react-icons/md';
+import { MdCheckCircle } from 'react-icons/md';
 import { IoMdOptions } from 'react-icons/io';
 import { currencyTWD, swrFetch, utc2Local } from '@/utils';
 import {
   useElementSize,
   usePagination,
   usePaginationState,
-  useWindowSize
+  useWindowSize,
+  useLatest
 } from '@/hooks';
 import useSwr from 'swr';
 import { apiFetchOrders } from '@/api';
 import { shipmentEnum, paymentStatusEnum } from '@/enums';
 import { SortingState } from '@tanstack/react-table';
 
-interface SearchFormModalProps
-  extends Pick<ModalContainerProps, 'show' | 'onClose' | 'onOk'> {
-  query: QueryState;
-  onDispatch: Dispatch<QueryAction>;
-}
-
-interface QueryState {
+interface QueryFormState {
   query?: string;
   status?: string;
   paidStatus?: string;
@@ -53,7 +44,7 @@ interface QueryState {
   shipDate?: string;
 }
 
-interface QueryAction {
+interface QueryFormAction {
   type:
     | 'setQuery'
     | 'setStatus'
@@ -63,62 +54,101 @@ interface QueryAction {
   payload: string;
 }
 
-const SearchFormModal = ({
-  show,
-  query,
-  onClose,
-  onOk,
-  onDispatch
-}: SearchFormModalProps) => {
-  return (
-    <ModalContainer
-      show={show}
-      title="搜尋訂單"
-      cancelText="取消"
-      okText="搜尋"
-      onOk={onOk}
-      onClose={onClose}
-    >
+interface QueryFormRefType {
+  query: QueryFormState;
+  setQuery: (arg: string) => void;
+}
+
+const QueryForm = forwardRef<QueryFormRefType, { query?: QueryFormState }>(
+  ({ query }, ref) => {
+    const [state, dispatch] = useImmerReducer<QueryFormState, QueryFormAction>(
+      (draft, action) => {
+        const actionMap = {
+          setQuery: (payload: string) => {
+            if (payload) {
+              draft.query = payload;
+            } else {
+              delete draft.query;
+            }
+          },
+          setStatus: (payload: string) => {
+            if (payload) {
+              draft.status = payload;
+            } else {
+              delete draft.status;
+            }
+          },
+          setPaidStatus: (payload: string) => {
+            if (payload) {
+              draft.paidStatus = payload;
+            } else {
+              delete draft.paidStatus;
+            }
+          },
+          setOrderDate: (payload: string) => {
+            if (payload) {
+              draft.orderDate = payload;
+            } else {
+              delete draft.orderDate;
+            }
+          },
+          setShipDate: (payload: string) => {
+            if (payload) {
+              draft.shipDate = payload;
+            } else {
+              delete draft.shipDate;
+            }
+          }
+        };
+
+        const has = action.type in actionMap;
+        has && actionMap[action.type](action.payload);
+      },
+      query || {}
+    );
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        query: state,
+        setQuery(value: string) {
+          dispatch({ type: 'setQuery', payload: value });
+        }
+      }),
+      [state, dispatch]
+    );
+
+    return (
       <Box className="space-y-2">
         <FormControl>
           <FormLabel>訂單狀態</FormLabel>
-          <Select
+          <TPSelect
             placeholder="全部"
-            defaultValue={query.status}
+            defaultValue={state.status}
+            options={shipmentEnum}
             onChange={(e) => {
-              onDispatch({ type: 'setStatus', payload: e.target.value });
+              dispatch({ type: 'setStatus', payload: e.target.value });
             }}
-          >
-            {shipmentEnum.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </Select>
+          />
         </FormControl>
         <FormControl>
           <FormLabel>付款狀態</FormLabel>
-          <Select
+          <TPSelect
             placeholder="全部"
-            defaultValue={query.paidStatus}
+            defaultValue={state.paidStatus}
+            options={paymentStatusEnum}
             onChange={(e) => {
-              onDispatch({ type: 'setPaidStatus', payload: e.target.value });
+              dispatch({ type: 'setPaidStatus', payload: e.target.value });
             }}
-          >
-            {paymentStatusEnum.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </Select>
+          />
         </FormControl>
         <FormControl>
           <FormLabel>訂購日</FormLabel>
           <Input
             type="date"
-            defaultValue={query.orderDate}
+            defaultValue={state.orderDate}
             onChange={(e) => {
-              onDispatch({ type: 'setOrderDate', payload: e.target.value });
+              dispatch({ type: 'setOrderDate', payload: e.target.value });
             }}
           />
         </FormControl>
@@ -126,66 +156,21 @@ const SearchFormModal = ({
           <FormLabel>出貨日</FormLabel>
           <Input
             type="date"
-            defaultValue={query.shipDate}
+            defaultValue={state.shipDate}
             onChange={(e) => {
-              onDispatch({ type: 'setShipDate', payload: e.target.value });
+              dispatch({ type: 'setShipDate', payload: e.target.value });
             }}
           />
         </FormControl>
       </Box>
-    </ModalContainer>
-  );
-};
-
-function useQueryParams() {
-  const initQuery: QueryState = {};
-  return useImmerReducer((draft: QueryState, action: QueryAction) => {
-    const actionMap = {
-      setQuery: (payload: string) => {
-        if (payload) {
-          draft.query = payload;
-        } else {
-          delete draft.query;
-        }
-      },
-      setStatus: (payload: string) => {
-        if (payload) {
-          draft.status = payload;
-        } else {
-          delete draft.status;
-        }
-      },
-      setPaidStatus: (payload: string) => {
-        if (payload) {
-          draft.paidStatus = payload;
-        } else {
-          delete draft.paidStatus;
-        }
-      },
-      setOrderDate: (payload: string) => {
-        if (payload) {
-          draft.orderDate = payload;
-        } else {
-          delete draft.orderDate;
-        }
-      },
-      setShipDate: (payload: string) => {
-        if (payload) {
-          draft.shipDate = payload;
-        } else {
-          delete draft.shipDate;
-        }
-      }
-    };
-
-    const has = action.type in actionMap;
-    has && actionMap[action.type](action.payload);
-  }, initQuery);
-}
+    );
+  }
+);
+QueryForm.displayName = 'QueryForm';
 
 function useQueryString(
   pagination: usePaginationState,
-  query: QueryState,
+  query: QueryFormState,
   sorting: SortingState
 ) {
   const [sort] = sorting;
@@ -243,17 +228,13 @@ const AdminOrder = () => {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
 
-  const compositionLockRef = useRef<boolean>(false);
-
   const windowSize = useWindowSize({});
-  const [headerW, headerH] = useElementSize(headerRef);
-  const [toolbarW, toolbarH] = useElementSize(toolbarRef);
-  const [paginationW, paginationH] = useElementSize(paginationRef);
+  const headerSize = useElementSize(headerRef);
+  const toolbarSize = useElementSize(toolbarRef);
+  const paginationSize = useElementSize(paginationRef);
 
   const { id } = router.query;
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [total, setTotal] = useState(0);
-  const [sorting, setSorting] = useState<SortingState>([]);
 
   const [isLargeMobile] = useMediaQuery('(min-width: 375px)', {
     ssr: true,
@@ -264,184 +245,185 @@ const AdminOrder = () => {
     fallback: false
   });
 
-  const [pagination, setPagination] = usePagination({
+  const [total, setTotal] = useState(0);
+
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const { page, pageSize, pageCount, setPage, prev, next } = usePagination({
     total,
     defaultPage: 1,
     defaultPageSize: 10
   });
+  const queryFormRef = useRef<QueryFormRefType | null>(null);
 
-  const [query, dispatch] = useQueryParams();
-
-  const qs = useQueryString(pagination, query, sorting);
+  // const qs = useQueryString(pagination, query, sorting);
 
   // query
-  const { data: orderListData, mutate } = useSwr(
-    id ? `/admin/project/${id}/orderList` : null,
-    () => swrFetch(apiFetchOrders(id as string, qs)),
-    {
-      suspense: isOpen,
-      revalidateOnFocus: false,
-      onSuccess(data, key, config) {
-        setIsLoading(false);
-        setTotal(data.data.total);
-      }
-    }
-  );
+  // const { data: orderListData, mutate } = useSwr(
+  //   id ? [`/admin/project/${id}/orderList`] : null,
+  //   () => swrFetch(apiFetchOrders(id as string, qs)),
+  //   {
+  //     suspense: isOpen,
+  //     revalidateOnFocus: false,
+  //     onSuccess(data, key, config) {
+  //       setIsLoading(false);
+  //       setTotal(data.data.total);
+  //     }
+  //   }
+  // );
 
-  useEffect(() => {
-    setIsLoading(true);
-    mutate();
-  }, [pagination, mutate]);
+  // useEffect(() => {
+  //   setIsLoading(true);
+  //   mutate();
+  // }, [pagination, mutate]);
 
-  useEffect(() => {
-    setIsLoading(true);
-    mutate();
-  }, [sorting, mutate]);
+  // useEffect(() => {
+  //   setIsLoading(true);
+  //   mutate();
+  // }, [sorting, mutate]);
 
   const tableHeight = useMemo(() => {
     if (isLargeDesktop) {
-      return windowSize.height - headerH - toolbarH - paginationH - 64;
+      return (
+        windowSize.height -
+        headerSize.height -
+        toolbarSize.height -
+        paginationSize.height -
+        64
+      );
     }
     return 'auto';
-  }, [windowSize, headerH, toolbarH, paginationH, isLargeDesktop]);
+  }, [windowSize, headerSize, toolbarSize, paginationSize, isLargeDesktop]);
 
-  const columnHelper = createColumnHelper<ApiProjectOrders.Order>();
-
-  const columns = [
-    columnHelper.accessor('transactionId', {
-      cell: (info) => info.getValue(),
-      header: '訂單',
-      size: 60
-    }),
-    columnHelper.accessor('buyerName', {
-      cell: (info) => info.getValue(),
-      header: '訂購人',
-      size: 30
-    }),
-    columnHelper.accessor('shipmentStatus', {
-      cell: (info) => renderOrderStatusTag(info.getValue()),
-      header: '訂單狀態',
-      size: 50
-    }),
-    columnHelper.accessor('paymentStatus', {
-      cell: (info) => renderPaymentStatusTag(info.getValue()),
-      header: '付款狀態',
-      size: 50
-    }),
-    columnHelper.accessor('shipment', {
-      cell: (info) => renderShipTag(info.getValue()),
-      header: '配送方式',
-      size: 50
-    }),
-    columnHelper.accessor('createdAt', {
-      cell: (info) =>
-        info.getValue()
-          ? utc2Local(info.getValue()).format('YYYY 年 MM 月 DD 日 HH:mm')
-          : '-',
-      header: '訂購日',
-      size: 50
-    }),
-    columnHelper.accessor('shipDate', {
-      cell: (info) =>
-        info.getValue()
-          ? utc2Local(info.getValue()).format('YYYY 年 MM 月 DD 日 HH:mm')
-          : '-',
-      header: '出貨日',
-      size: 50
-    }),
-    columnHelper.accessor('total', {
-      cell: (info) => currencyTWD(info.getValue()),
-      header: '總金額',
-      size: 50,
-      meta: {
-        isNumeric: true
+  const columns = useMemo(() => {
+    function renderOrderStatusTag(value: number) {
+      switch (value) {
+        case 0:
+          return <Text>未出貨</Text>;
+        case 1:
+          return <Text>出貨中</Text>;
+        case 2:
+          return (
+            <Text
+              display="flex"
+              alignItems="center"
+              columnGap={1}
+              color="primary.500"
+            >
+              <Icon as={MdCheckCircle} boxSize={4} />
+              已抵達
+            </Text>
+          );
+        default:
+          return <Text color="error">錯誤</Text>;
       }
-    }),
-    columnHelper.display({
-      id: 'note',
-      cell: (info) => info.getValue(),
-      header: '備註',
-      size: 60
-    })
-  ];
-
-  function renderOrderStatusTag(value: number) {
-    switch (value) {
-      case 0:
-        return <Text>未出貨</Text>;
-      case 1:
-        return <Text>出貨中</Text>;
-      case 2:
-        return (
-          <Text
-            display="flex"
-            alignItems="center"
-            columnGap={1}
-            color="primary.500"
-          >
-            <Icon as={MdCheckCircle} boxSize={4} />
-            已抵達
-          </Text>
-        );
-      default:
-        return <Text color="error">錯誤</Text>;
     }
-  }
 
-  function renderPaymentStatusTag(value: number) {
-    switch (value) {
-      case 0:
-        return (
-          <Text fontWeight="semibold" color="orange">
-            未付款
-          </Text>
-        );
-      case 1:
-        return (
-          <Text
-            display="flex"
-            alignItems="center"
-            columnGap={1}
-            fontWeight="semibold"
-            color="primary.500"
-          >
-            <Icon as={MdCheckCircle} boxSize={4} />
-            已付款
-          </Text>
-        );
-      default:
-        return (
-          <Text fontWeight="semibold" color="error">
-            錯誤
-          </Text>
-        );
+    function renderPaymentStatusTag(value: number) {
+      switch (value) {
+        case 0:
+          return (
+            <Text fontWeight="semibold" color="orange">
+              未付款
+            </Text>
+          );
+        case 1:
+          return (
+            <Text
+              display="flex"
+              alignItems="center"
+              columnGap={1}
+              fontWeight="semibold"
+              color="primary.500"
+            >
+              <Icon as={MdCheckCircle} boxSize={4} />
+              已付款
+            </Text>
+          );
+        default:
+          return (
+            <Text fontWeight="semibold" color="error">
+              錯誤
+            </Text>
+          );
+      }
     }
-  }
 
-  function renderShipTag(value: number) {
-    switch (value) {
-      case 0:
-        return <Text>宅配</Text>;
-      case 1:
-        return <Text>超商貨到付款</Text>;
-      default:
-        return <Text color="error">錯誤</Text>;
+    function renderShipTag(value: number) {
+      switch (value) {
+        case 0:
+          return <Text>宅配</Text>;
+        case 1:
+          return <Text>超商貨到付款</Text>;
+        default:
+          return <Text color="error">錯誤</Text>;
+      }
     }
-  }
+
+    const columnHelper = createColumnHelper<ApiProjectOrders.Order>();
+
+    return [
+      columnHelper.accessor('transactionId', {
+        cell: (info) => info.getValue(),
+        header: '訂單',
+        size: 60
+      }),
+      columnHelper.accessor('buyerName', {
+        cell: (info) => info.getValue(),
+        header: '訂購人',
+        size: 30
+      }),
+      columnHelper.accessor('shipmentStatus', {
+        cell: (info) => renderOrderStatusTag(info.getValue()),
+        header: '訂單狀態',
+        size: 50
+      }),
+      columnHelper.accessor('paymentStatus', {
+        cell: (info) => renderPaymentStatusTag(info.getValue()),
+        header: '付款狀態',
+        size: 50
+      }),
+      columnHelper.accessor('shipment', {
+        cell: (info) => renderShipTag(info.getValue()),
+        header: '配送方式',
+        size: 50
+      }),
+      columnHelper.accessor('createdAt', {
+        cell: (info) =>
+          info.getValue()
+            ? utc2Local(info.getValue()).format('YYYY 年 MM 月 DD 日 HH:mm')
+            : '-',
+        header: '訂購日',
+        size: 50
+      }),
+      columnHelper.accessor('shipDate', {
+        cell: (info) =>
+          info.getValue()
+            ? utc2Local(info.getValue()).format('YYYY 年 MM 月 DD 日 HH:mm')
+            : '-',
+        header: '出貨日',
+        size: 50
+      }),
+      columnHelper.accessor('total', {
+        cell: (info) => currencyTWD(info.getValue()),
+        header: '總金額',
+        size: 50,
+        meta: {
+          isNumeric: true
+        }
+      }),
+      columnHelper.display({
+        id: 'note',
+        cell: (info) => info.getValue(),
+        header: '備註',
+        size: 60
+      })
+    ];
+  }, []);
 
   function from(page: number, size: number) {
     const f = (page - 1) * size + 1;
     return `${f} - ${f + size - 1}`;
   }
-
-  const debounceInputQ = debounce(function (e) {
-    if (compositionLockRef.current) return;
-    dispatch({ type: 'setQuery', payload: e.target.value });
-    window.setTimeout(async () => {
-      setIsLoading(true);
-      await mutate();
-    }, 210);
-  }, 200);
 
   return (
     <>
@@ -469,26 +451,18 @@ const AdminOrder = () => {
               icon={<Icon as={IoMdOptions} boxSize={5} />}
               onClick={onOpen}
             />
-            <InputGroup
-              order={{ base: 1, lg: 2 }}
-              w={{ base: 'full', xs: '33%', md: '25%', xl: '20%' }}
-            >
-              <Input
-                placeholder="搜尋訂單"
-                bg="white"
-                onChange={debounceInputQ}
-                onCompositionStart={(e) => {
-                  compositionLockRef.current = true;
-                }}
-                onCompositionEnd={(e) => {
-                  compositionLockRef.current = false;
-                  debounceInputQ(e);
-                }}
-              />
-              <InputRightElement>
-                <Icon as={MdOutlineSearch} />
-              </InputRightElement>
-            </InputGroup>
+            <SearchBar
+              placeholder="搜尋訂單"
+              bg="white"
+              defaultValue={queryFormRef.current?.query.query || ''}
+              inputGroup={{
+                order: { base: 1, lg: 2 },
+                w: { base: 'full', xs: '33%', md: '25%', xl: '20%' }
+              }}
+              onChange={(value: string) => {
+                queryFormRef.current?.setQuery(value);
+              }}
+            />
           </div>
         </div>
         <Box
@@ -502,14 +476,18 @@ const AdminOrder = () => {
             <CardBody
               h="full"
               position="relative"
-              pb={{ base: `${paginationH}px` }}
+              pb={{ base: `${paginationSize.height}px` }}
             >
               <DataTable
                 h="full"
                 minH={tableHeight}
                 columns={columns}
-                data={orderListData?.data.items || []}
-                pagination={pagination}
+                data={[]}
+                pagination={{
+                  page,
+                  pageSize,
+                  pageCount
+                }}
                 loading={isLoading}
                 manualSorting={true}
                 onSortingChange={setSorting}
@@ -519,36 +497,37 @@ const AdminOrder = () => {
                 className="absolute inset-x-0 bottom-0 flex w-full flex-col items-center justify-center gap-y-2 px-5 pb-5 pt-4 md:flex-row md:justify-between"
               >
                 <p>
-                  {from(pagination.page, pagination.pageSize)} of {total}
+                  {from(page, pageSize)} of {total}
                 </p>
                 <Pagination
-                  page={pagination.page}
-                  pageCount={pagination.pageCount}
+                  page={page}
+                  pageCount={pageCount}
                   siblingsCount={1}
                   size={isLargeMobile ? 'sm' : 'xs'}
                   variant="ghost"
                   colorScheme="primary"
                   shape="circle"
-                  onPageChange={setPagination.setPage}
-                  onPrevPage={() => setPagination.prev(1)}
-                  onNextPage={() => setPagination.next(1)}
+                  onPageChange={setPage}
+                  onPrevPage={() => prev(1)}
+                  onNextPage={() => next(1)}
                 ></Pagination>
               </div>
             </CardBody>
           </Card>
         </Box>
       </Flex>
-      <SearchFormModal
+      <ModalContainer
         show={isOpen}
-        onClose={onClose}
-        query={query}
-        onDispatch={dispatch}
-        onOk={async () => {
-          setIsLoading(true);
-          onClose();
-          await mutate();
+        title="搜尋訂單"
+        cancelText="取消"
+        okText="搜尋"
+        onOk={() => {
+          console.log(queryFormRef.current?.query);
         }}
-      />
+        onClose={onClose}
+      >
+        <QueryForm ref={queryFormRef} query={queryFormRef.current?.query} />
+      </ModalContainer>
     </>
   );
 };

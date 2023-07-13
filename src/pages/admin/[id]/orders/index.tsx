@@ -1,9 +1,15 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useContext } from 'react';
 import { useImmerReducer } from 'use-immer';
 import { ReactElement, forwardRef, useImperativeHandle } from 'react';
-import { AdminLayout, ModalContainer, SearchBar, TPSelect } from '@/components';
+import {
+  AdminLayout,
+  ModalContainer,
+  SearchBar,
+  TPSelect,
+  WindowSizeContext
+} from '@/components';
 import {
   Heading,
   Input,
@@ -24,13 +30,7 @@ import { DataTable, Pagination } from '@/components';
 import { MdCheckCircle } from 'react-icons/md';
 import { IoMdOptions } from 'react-icons/io';
 import { currencyTWD, swrFetch, utc2Local } from '@/utils';
-import {
-  useElementSize,
-  usePagination,
-  usePaginationState,
-  useWindowSize,
-  useLatest
-} from '@/hooks';
+import { useElementSize, usePagination, useLatest } from '@/hooks';
 import useSwr from 'swr';
 import { apiFetchOrders } from '@/api';
 import { shipmentEnum, paymentStatusEnum } from '@/enums';
@@ -168,11 +168,16 @@ const QueryForm = forwardRef<QueryFormRefType, { query?: QueryFormState }>(
 );
 QueryForm.displayName = 'QueryForm';
 
-function useQueryString(
-  pagination: usePaginationState,
-  query: QueryFormState,
-  sorting: SortingState
-) {
+function handleQueryString({
+  page,
+  limit,
+  sorting,
+  ...query
+}: {
+  page: number;
+  limit: number;
+  sorting: SortingState;
+} & QueryFormState) {
   const [sort] = sorting;
 
   let sortObj: Record<string, string> = {};
@@ -212,8 +217,8 @@ function useQueryString(
   }
 
   const params = {
-    page: pagination.page,
-    limit: pagination.pageSize,
+    page,
+    limit,
     ...query,
     ...sortObj
   };
@@ -223,12 +228,11 @@ function useQueryString(
 
 const AdminOrder = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
   const headerRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
 
-  const windowSize = useWindowSize({});
+  const windowSize = useContext(WindowSizeContext);
   const headerSize = useElementSize(headerRef);
   const toolbarSize = useElementSize(toolbarRef);
   const paginationSize = useElementSize(paginationRef);
@@ -254,32 +258,29 @@ const AdminOrder = () => {
     defaultPageSize: 10
   });
   const queryFormRef = useRef<QueryFormRefType | null>(null);
+  const [queryForm, setQueryForm] = useState<QueryFormState>(() => ({}));
 
-  // const qs = useQueryString(pagination, query, sorting);
+  const latestParams = useLatest({
+    page,
+    limit: pageSize,
+    sorting,
+    ...queryForm
+  });
 
   // query
-  // const { data: orderListData, mutate } = useSwr(
-  //   id ? [`/admin/project/${id}/orderList`] : null,
-  //   () => swrFetch(apiFetchOrders(id as string, qs)),
-  //   {
-  //     suspense: isOpen,
-  //     revalidateOnFocus: false,
-  //     onSuccess(data, key, config) {
-  //       setIsLoading(false);
-  //       setTotal(data.data.total);
-  //     }
-  //   }
-  // );
-
-  // useEffect(() => {
-  //   setIsLoading(true);
-  //   mutate();
-  // }, [pagination, mutate]);
-
-  // useEffect(() => {
-  //   setIsLoading(true);
-  //   mutate();
-  // }, [sorting, mutate]);
+  const { data: orderListData, isLoading } = useSwr(
+    id ? [`/admin/project/${id}/orderList`, latestParams.current] : null,
+    ([key, params]) => {
+      const qs = handleQueryString(params);
+      return swrFetch(apiFetchOrders(id as string, qs));
+    },
+    {
+      suspense: isOpen,
+      onSuccess(data, key, config) {
+        setTotal(data.data.total);
+      }
+    }
+  );
 
   const tableHeight = useMemo(() => {
     if (isLargeDesktop) {
@@ -288,7 +289,7 @@ const AdminOrder = () => {
         headerSize.height -
         toolbarSize.height -
         paginationSize.height -
-        64
+        80
       );
     }
     return 'auto';
@@ -427,13 +428,10 @@ const AdminOrder = () => {
 
   return (
     <>
-      <Head>
-        <title>訂單列表-TripPlus+</title>
-      </Head>
       <Flex h="full" minHeight="calc(100vh)" w="full" flexDirection="column">
         <div
           ref={headerRef}
-          className="flex shrink-0 items-center justify-between p-3 pt-12 md:px-12"
+          className="flex shrink-0 items-center justify-between p-3 pt-10 md:px-20 md:pt-20"
         >
           <Heading as="h2" size="xl" noOfLines={1}>
             訂單列表
@@ -441,7 +439,7 @@ const AdminOrder = () => {
         </div>
         <div
           ref={toolbarRef}
-          className="shrink-0 bg-gray-200 p-3 sm:px-12  md:flex"
+          className="shrink-0 bg-gray-200 p-3 md:flex  md:px-20"
         >
           <div className="flex w-full items-center justify-end gap-y-3 sm:flex-row sm:gap-2 sm:gap-y-0">
             <IconButton
@@ -467,10 +465,10 @@ const AdminOrder = () => {
         </div>
         <Box
           flexGrow={1}
-          px={{ base: 3, md: 12 }}
-          py={{ base: 3 }}
+          px={{ base: 3, md: 20 }}
+          pt={{ base: 5 }}
+          pb={{ base: 10 }}
           backgroundColor="gray.100"
-          h="full"
         >
           <Card h="full">
             <CardBody
@@ -482,7 +480,7 @@ const AdminOrder = () => {
                 h="full"
                 minH={tableHeight}
                 columns={columns}
-                data={[]}
+                data={orderListData?.data.items || []}
                 pagination={{
                   page,
                   pageSize,
@@ -522,11 +520,12 @@ const AdminOrder = () => {
         cancelText="取消"
         okText="搜尋"
         onOk={() => {
-          console.log(queryFormRef.current?.query);
+          setQueryForm(queryFormRef.current?.query || {});
+          onClose();
         }}
         onClose={onClose}
       >
-        <QueryForm ref={queryFormRef} query={queryFormRef.current?.query} />
+        <QueryForm ref={queryFormRef} query={queryForm} />
       </ModalContainer>
     </>
   );
@@ -535,5 +534,12 @@ const AdminOrder = () => {
 export default AdminOrder;
 
 AdminOrder.getLayout = function (page: ReactElement) {
-  return <AdminLayout>{page}</AdminLayout>;
+  return (
+    <AdminLayout>
+      <Head>
+        <title>訂單列表-TripPlus+</title>
+      </Head>
+      {page}
+    </AdminLayout>
+  );
 };

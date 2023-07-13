@@ -222,7 +222,7 @@ const AdminProjects = () => {
         headerSize.height -
         toolbarSize.height -
         paginationSize.height -
-        64
+        80
       );
     }
     return 'auto';

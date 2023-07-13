@@ -38,6 +38,7 @@
     "js-cookie": "^3.0.5",
     "lodash-es": "^4.17.21",
     "next": "13.3.0",
+    "next-auth": "^4.22.1",
     "postcss": "8.4.21",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -53,6 +54,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.5.1",
     "@commitlint/config-conventional": "^17.4.4",
+    "@testing-library/react": "^14.0.0",
     "@types/js-cookie": "^3.0.3",
     "@types/lodash-es": "^4.17.7",
     "eslint-config-prettier": "^8.8.0",
@@ -61,6 +63,7 @@
     "husky": "^8.0.0",
     "lint-staged": "^13.2.1",
     "prettier": "^2.8.7",
-    "prettier-plugin-tailwindcss": "^0.2.7"
+    "prettier-plugin-tailwindcss": "^0.2.7",
+    "vitest": "^0.33.0"
   }
 }

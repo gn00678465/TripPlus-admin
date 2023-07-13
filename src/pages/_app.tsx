@@ -3,6 +3,7 @@ import type { AppProps } from 'next/app';
 import { Noto_Sans_TC, Ubuntu } from 'next/font/google';
 import localFont from 'next/font/local';
 import { Chakra } from '@/components';
+import { SWRConfig } from 'swr';
 
 const noto_sans_tc = Noto_Sans_TC({
   weight: ['100', '300', '400', '500', '700', '900'],
@@ -48,7 +49,13 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
     <main
       className={`${ubuntu.variable} ${noto_sans_tc.variable} ${alkatra.variable} h-full font-sans`}
     >
-      <Chakra>{getLayout(<Component {...pageProps} />)}</Chakra>
+      <SWRConfig
+        value={{
+          revalidateOnFocus: false
+        }}
+      >
+        <Chakra>{getLayout(<Component {...pageProps} />)}</Chakra>
+      </SWRConfig>
     </main>
   );
 }

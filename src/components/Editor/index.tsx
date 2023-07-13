@@ -32,7 +32,7 @@ export default function CKeditor({
   return (
     <>
       {editorLoaded ? (
-        <div>
+        <div className="ck-content">
           <CKEditor
             id={name}
             editor={DecoupledEditor}
@@ -57,7 +57,14 @@ export default function CKeditor({
               //   'undo',
               //   'redo'
               // ],
-              extraPlugins: [MyUploadAdapterPlugin]
+              extraPlugins: [MyUploadAdapterPlugin],
+              list: {
+                properties: {
+                  styles: true,
+                  startIndex: true,
+                  reversed: true
+                }
+              }
             }}
             onReady={(editor) => {
               editor.ui
@@ -66,19 +73,21 @@ export default function CKeditor({
                   editor.ui.view.toolbar.element as HTMLElement,
                   editor.ui.getEditableElement() as HTMLElement
                 );
+              const rootEditableElement =
+                editor.editing.view.document.getRoot();
+              if (rootEditableElement) {
+                editor.editing.view.change(({ setStyle }) => {
+                  setStyle('min-height', '400px', rootEditableElement);
+                  setStyle('border', '1px solid #d3d3d3', rootEditableElement);
+                  setStyle('border-top-width', '0px', rootEditableElement);
+                });
+              }
             }}
             onChange={(event: any, editor: any) => {
               const data = editor.getData();
               onChange(data);
             }}
           />
-          <style jsx global>{`
-            .ck-editor__editable_inline {
-              min-height: 400px;
-              border: 1px solid #d3d3d3 !important;
-              border-top-width: 0px !important;
-            }
-          `}</style>
         </div>
       ) : (
         <div>Editor loading</div>

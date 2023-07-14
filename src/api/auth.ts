@@ -1,10 +1,5 @@
 import { request } from '@/config/axios';
 
-interface LoginBody {
-  email: string;
-  password: string;
-}
-
-export function login(data: LoginBody) {
+export function login(data: Auth.LoginBody) {
   return request.post<ApiAuth.UserInfo>('/auth/login', data);
 }

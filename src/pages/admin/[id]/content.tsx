@@ -28,7 +28,7 @@ export default function ProjectContent() {
     return res.data;
   };
 
-  preload('/api/movies', fetcher);
+  // preload('/api/movies', fetcher);
 
   const [content, setContent] = useState<string>('');
 
@@ -75,7 +75,7 @@ export default function ProjectContent() {
               <CKeditor
                 value={content}
                 name="content"
-                editorLoaded={!isLoading}
+                editorLoaded={true}
                 onChange={(data) => {
                   setContent(data);
                 }}

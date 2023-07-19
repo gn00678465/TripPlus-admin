@@ -4,6 +4,39 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import DecoupledEditor from '@ckeditor/ckeditor5-build-decoupled-document';
 import { MyUploadAdapterPlugin } from './UploadAdapter';
 
+export const CKEditorConfig = {
+  toolbar: [
+    'heading',
+    '|',
+    'fontfamily',
+    'fontsize',
+    'fontColor',
+    'fontBackgroundColor',
+    '|',
+    'bold',
+    'italic',
+    'underline',
+    'strikethrough',
+    '|',
+    'alignment',
+    '|',
+    'numberedList',
+    'bulletedList',
+    '|',
+    'indent',
+    'outdent',
+    '|',
+    'link',
+    'blockquote',
+    'imageUpload',
+    'insertTable',
+    'mediaEmbed',
+    '|',
+    'undo',
+    'redo'
+  ]
+};
+
 interface CKeditorProps {
   onChange: (data: string) => void;
   editorLoaded: boolean;
@@ -22,6 +55,8 @@ export default function CKeditor({
     DecoupledEditor: typeof DecoupledEditor;
   }>();
 
+  const { toolbar, ...config } = CKEditorConfig;
+
   useEffect(() => {
     editorRef.current = {
       CKEditor: require('@ckeditor/ckeditor5-react').CKEditor,
@@ -38,25 +73,7 @@ export default function CKeditor({
             editor={DecoupledEditor}
             data={value}
             config={{
-              // toolbar: [
-              //   'heading',
-              //   '|',
-              //   'bold',
-              //   'italic',
-              //   'blockQuote',
-              //   'link',
-              //   'numberedList',
-              //   'bulletedList',
-              //   'imageUpload',
-              //   'insertTable',
-              //   'tableColumn',
-              //   'tableRow',
-              //   'mergeTableCells',
-              //   'mediaEmbed',
-              //   '|',
-              //   'undo',
-              //   'redo'
-              // ],
+              toolbar: toolbar,
               extraPlugins: [MyUploadAdapterPlugin],
               list: {
                 properties: {
@@ -64,7 +81,8 @@ export default function CKeditor({
                   startIndex: true,
                   reversed: true
                 }
-              }
+              },
+              ...config
             }}
             onReady={(editor) => {
               editor.ui
